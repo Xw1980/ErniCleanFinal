@@ -9,6 +9,13 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.app.Dialog
+import android.widget.Button
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView
+import com.prolificinteractive.materialcalendarview.CalendarDay
+import java.util.Calendar
+import java.util.Locale
+import android.widget.Toast
 
 class PendingAppointmentsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
@@ -22,9 +29,9 @@ class PendingAppointmentsFragment : Fragment() {
         recyclerView = view.findViewById(R.id.appointmentsRecyclerView)
         adapter = AppointmentsAdapter(
             appointments = appointments,
-            onItemClick = { appointment -> showAppointmentDetails(appointment) },
-            onCompleteClick = { appointment -> showOptionsDialog(appointment) },
-            onPostponeClick = { appointment -> showOptionsDialog(appointment) }
+            onItemClick = { /* Eliminado: showAppointmentDetails(appointment) */ },
+            onCompleteClick = { appointment -> completeAppointment(appointment) },
+            onPostponeClick = { appointment -> postponeAppointment(appointment) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
@@ -38,20 +45,6 @@ class PendingAppointmentsFragment : Fragment() {
         appointments.add(Appointment("2", "María García", "555-0124", "Avenida Central 456", "Limpieza General", java.util.Date()))
         appointments.add(Appointment("3", "Carlos Sánchez", "555-0125", "Plaza Mayor 789", "Desinfección", java.util.Date()))
         adapter.updateAppointments(appointments)
-    }
-
-    private fun showAppointmentDetails(appointment: Appointment) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_details, null)
-        dialogView.findViewById<TextView>(R.id.detailClientName).text = appointment.clientName
-        dialogView.findViewById<TextView>(R.id.detailClientPhone).text = appointment.clientPhone
-        dialogView.findViewById<TextView>(R.id.detailClientAddress).text = appointment.clientAddress
-        dialogView.findViewById<TextView>(R.id.detailServiceType).text = appointment.serviceType
-
-        AlertDialog.Builder(requireContext())
-            .setView(dialogView)
-            .setPositiveButton("CERRAR") { dialog, _ -> dialog.dismiss() }
-            .create()
-            .show()
     }
 
     private fun showOptionsDialog(appointment: Appointment) {
@@ -77,9 +70,68 @@ class PendingAppointmentsFragment : Fragment() {
     }
 
     private fun postponeAppointment(appointment: Appointment) {
-        // Aquí puedes implementar la lógica para posponer la cita
-        appointment.status = AppointmentStatus.POSTPONED
-        adapter.updateAppointments(appointments)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_postpone, null)
+        val calendarView = dialogView.findViewById<MaterialCalendarView>(R.id.calendarViewPostpone)
+        val tvPendingCount = dialogView.findViewById<TextView>(R.id.tvPendingCount)
+        val btnConfirm = dialogView.findViewById<Button>(R.id.btnConfirmPostpone)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelPostpone)
+
+        // Configurar calendario en español y colores
+        val locale = Locale("es", "ES")
+        calendarView.setTitleFormatter { day ->
+            val localDate = day.date
+            val monthName = org.threeten.bp.Month.of(localDate.monthValue).getDisplayName(org.threeten.bp.format.TextStyle.FULL, locale)
+            "${monthName.replaceFirstChar { it.uppercase(locale) }} ${localDate.year}"
+        }
+        calendarView.setWeekDayFormatter { dayOfWeek ->
+            val symbols = java.text.DateFormatSymbols(locale)
+            val shortWeekdays = symbols.shortWeekdays
+            shortWeekdays[dayOfWeek.value % 7 + 1].uppercase(locale)
+        }
+        // Color de selección
+        calendarView.selectionColor = resources.getColor(R.color.cyan, null)
+        // Seleccionar la fecha actual de la cita
+        val cal = Calendar.getInstance().apply { time = appointment.date }
+        val selectedDay = CalendarDay.from(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+        calendarView.selectedDate = selectedDay
+
+        btnConfirm.isEnabled = false
+        tvPendingCount.visibility = View.GONE
+
+        calendarView.setOnDateChangedListener { _, date, _ ->
+            // Habilitar solo si la fecha cambia
+            btnConfirm.isEnabled = date != selectedDay
+            // Contar citas pendientes ese día
+            val count = appointments.count {
+                it.status == AppointmentStatus.PENDING && isSameDay(it.date, date)
+            }
+            if (count > 0) {
+                tvPendingCount.text = "Tienes $count cita(s) pendiente(s) ese día."
+                tvPendingCount.visibility = View.VISIBLE
+            } else {
+                tvPendingCount.visibility = View.GONE
+            }
+        }
+
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(dialogView)
+        dialog.setCancelable(false)
+
+        btnConfirm.setOnClickListener {
+            val newDate = calendarView.selectedDate?.date
+            if (newDate != null && newDate != appointment.date) {
+                // Conversión correcta usando solo org.threeten.bp
+                val zoneId = org.threeten.bp.ZoneId.systemDefault()
+                val instant = newDate.atStartOfDay(zoneId).toInstant()
+                appointment.date = java.util.Date(instant.toEpochMilli())
+                appointment.status = AppointmentStatus.POSTPONED
+                adapter.updateAppointments(appointments)
+                Toast.makeText(requireContext(), "Cita pospuesta", Toast.LENGTH_SHORT).show()
+            }
+            dialog.dismiss()
+        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun editAppointment(appointment: Appointment) {
@@ -101,5 +153,13 @@ class PendingAppointmentsFragment : Fragment() {
             }
             .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
             .show()
+    }
+
+    // Función para comparar solo la fecha (sin hora)
+    private fun isSameDay(date1: java.util.Date, calendarDay: CalendarDay): Boolean {
+        val cal1 = Calendar.getInstance().apply { time = date1 }
+        return cal1.get(Calendar.YEAR) == calendarDay.year &&
+                cal1.get(Calendar.MONTH) + 1 == calendarDay.month &&
+                cal1.get(Calendar.DAY_OF_MONTH) == calendarDay.day
     }
 } 

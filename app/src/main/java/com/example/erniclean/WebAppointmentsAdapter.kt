@@ -25,8 +25,6 @@ class WebAppointmentsAdapter(
         val clientPhone: TextView = view.findViewById(R.id.clientPhone)
         val clientAddress: TextView = view.findViewById(R.id.clientAddress)
         val serviceType: TextView = view.findViewById(R.id.serviceType)
-        val btnCall: ImageButton = view.findViewById(R.id.btnCall)
-        val btnWhatsapp: ImageButton = view.findViewById(R.id.btnWhatsapp)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -46,8 +44,6 @@ class WebAppointmentsAdapter(
         holder.clientAddress.text = appointment.clientAddress
         holder.serviceType.text = appointment.serviceType
 
-        holder.btnCall.setOnClickListener { onCallClick(appointment) }
-        holder.btnWhatsapp.setOnClickListener { onWhatsappClick(appointment) }
         holder.itemView.setOnClickListener { onItemClick(appointment) }
     }
 

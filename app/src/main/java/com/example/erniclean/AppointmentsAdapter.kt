@@ -25,6 +25,7 @@ class AppointmentsAdapter(
         val clientPhone: TextView = view.findViewById(R.id.clientPhone)
         val clientAddress: TextView = view.findViewById(R.id.clientAddress)
         val serviceType: TextView = view.findViewById(R.id.serviceType)
+        val btnPostpone: View? = view.findViewById(R.id.btnPostpone)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -61,6 +62,10 @@ class AppointmentsAdapter(
             }
             popup.show()
             true
+        }
+
+        holder.btnPostpone?.setOnClickListener {
+            onPostponeClick(appointment)
         }
     }
 
