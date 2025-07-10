@@ -93,6 +93,18 @@ class MainCalendarFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
 
+        // Forzar idioma español en el calendario principal
+        val locale = Locale("es", "ES")
+        calendarView.setTitleFormatter { day ->
+            val localDate = day.date
+            val monthName = org.threeten.bp.Month.of(localDate.monthValue).getDisplayName(org.threeten.bp.format.TextStyle.FULL, locale)
+            "${monthName.replaceFirstChar { it.uppercase(locale) }} ${localDate.year}"
+        }
+        calendarView.setWeekDayFormatter { dayOfWeek ->
+            val symbols = java.text.DateFormatSymbols(locale)
+            val shortWeekdays = symbols.shortWeekdays
+            shortWeekdays[dayOfWeek.value % 7 + 1].uppercase(locale)
+        }
         setupCalendarDecorators()
         return view
     }
@@ -128,26 +140,23 @@ class MainCalendarFragment : Fragment() {
         })
         // Decorador para dots cyan en días con citas pendientes
         calendarView.addDecorator(EventDecorator(Color.parseColor("#00BCD4"), pendingDates))
-        // Decorador para opacar días de otros meses (gris claro)
+        // Decorador para opacar días de meses pasados (gris claro, pero seleccionables)
         calendarView.addDecorator(object : DayViewDecorator {
             override fun shouldDecorate(day: CalendarDay): Boolean {
                 val currentMonth = calendarView.currentDate.month
-                return day.month != currentMonth
+                val currentYear = calendarView.currentDate.year
+                return (day.year < currentYear) || (day.year == currentYear && day.month < currentMonth)
             }
             override fun decorate(view: DayViewFacade) {
-                view.setDaysDisabled(true)
-                view.addSpan(android.text.style.ForegroundColorSpan(0x33000000))
+                // Solo opacidad, no deshabilitar
+                view.addSpan(android.text.style.ForegroundColorSpan(Color.parseColor("#BDBDBD")))
             }
         })
         // Controla la selección solo en el listener correcto
         calendarView.setOnDateChangedListener { _, date, _ ->
-            if (date == today || pendingDates.contains(date)) {
-                selectedDay = date
-                updateAppointmentsForSelectedDay()
-                setupCalendarDecorators()
-            } else {
-                calendarView.clearSelection()
-            }
+            selectedDay = date
+            updateAppointmentsForSelectedDay()
+            setupCalendarDecorators()
         }
         calendarView.setOnMonthChangedListener { _, _ ->
             calendarView.invalidateDecorators()
@@ -203,6 +212,8 @@ class MainCalendarFragment : Fragment() {
             shortWeekdays[dayOfWeek.value % 7 + 1].uppercase(locale)
         }
         calendarDialog.selectionColor = resources.getColor(R.color.cyan, null)
+        // Solo permitir seleccionar fechas futuras
+        calendarDialog.state().edit().setMinimumDate(CalendarDay.today()).commit()
         val cal = Calendar.getInstance().apply { time = appointment.date }
         val selectedDay = CalendarDay.from(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
         calendarDialog.selectedDate = selectedDay
