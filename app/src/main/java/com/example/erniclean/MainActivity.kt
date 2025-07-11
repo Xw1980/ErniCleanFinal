@@ -78,10 +78,16 @@ class MainCalendarFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_main_calendar, container, false)
         calendarView = view.findViewById(R.id.calendarView)
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewCitas)
-        // Simulación de citas (ahora mutable y ordenadas por fecha)
+        // Citas distribuidas en varios días del mes actual para pruebas
+        val now = java.util.Calendar.getInstance()
+        val year = now.get(java.util.Calendar.YEAR)
+        val month = now.get(java.util.Calendar.MONTH)
         appointments = mutableListOf(
-            Appointment("1", "Juan Pérez", "555-0123", "Calle Principal 123", "Pulido de Marmol", java.util.Date()),
-            Appointment("2", "María García", "555-0124", "Avenida Central 456", "Limpieza General", java.util.Date())
+            Appointment("1", "Juan Pérez", "555-0123", "Calle Principal 123", "Pulido de Marmol", java.util.Date(year - 1900, month, 2)),
+            Appointment("2", "María García", "555-0124", "Avenida Central 456", "Limpieza General", java.util.Date(year - 1900, month, 5)),
+            Appointment("3", "Carlos Sánchez", "555-0125", "Plaza Mayor 789", "Desinfección", java.util.Date(year - 1900, month, 11)),
+            Appointment("4", "Ana López", "555-0126", "Calle Sur 321", "Limpieza de Vidrios", java.util.Date(year - 1900, month, 15)),
+            Appointment("5", "Luis Torres", "555-0127", "Boulevard Norte 654", "Pulido de Pisos", java.util.Date(year - 1900, month, 20))
         )
         appointments.sortBy { it.date }
         adapter = AppointmentsAdapter(
@@ -92,7 +98,6 @@ class MainCalendarFragment : Fragment() {
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
-
         // Forzar idioma español en el calendario principal
         val locale = Locale("es", "ES")
         calendarView.setTitleFormatter { day ->
@@ -105,6 +110,8 @@ class MainCalendarFragment : Fragment() {
             val shortWeekdays = symbols.shortWeekdays
             shortWeekdays[dayOfWeek.value % 7 + 1].uppercase(locale)
         }
+        // Seleccionar el día actual por defecto y mostrar citas de ese día
+        selectedDay = CalendarDay.today()
         setupCalendarDecorators()
         return view
     }
@@ -140,19 +147,19 @@ class MainCalendarFragment : Fragment() {
         })
         // Decorador para dots cyan en días con citas pendientes
         calendarView.addDecorator(EventDecorator(Color.parseColor("#00BCD4"), pendingDates))
-        // Decorador para opacar días de meses pasados (gris claro, pero seleccionables)
+        // Decorador para opacar días de meses pasados y días de otros meses en la cuadrícula (texto gris claro)
         calendarView.addDecorator(object : DayViewDecorator {
             override fun shouldDecorate(day: CalendarDay): Boolean {
                 val currentMonth = calendarView.currentDate.month
                 val currentYear = calendarView.currentDate.year
-                return (day.year < currentYear) || (day.year == currentYear && day.month < currentMonth)
+                // Días de meses pasados o días de otros meses visibles en la cuadrícula
+                return (day.year < currentYear) || (day.year == currentYear && day.month < currentMonth) || (day.month != currentMonth)
             }
             override fun decorate(view: DayViewFacade) {
-                // Solo opacidad, no deshabilitar
-                view.addSpan(android.text.style.ForegroundColorSpan(Color.parseColor("#BDBDBD")))
+                // Cambia solo el color del texto a gris claro
+                view.addSpan(android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#BDBDBD")))
             }
         })
-        // Controla la selección solo en el listener correcto
         calendarView.setOnDateChangedListener { _, date, _ ->
             selectedDay = date
             updateAppointmentsForSelectedDay()
@@ -171,10 +178,7 @@ class MainCalendarFragment : Fragment() {
             return
         }
         val filtered = appointments.filter {
-            it.status == AppointmentStatus.PENDING &&
-            it.date.year + 1900 == day.year &&
-            it.date.month + 1 == day.month &&
-            it.date.date == day.day
+            it.date.isSameDay(day)
         }.sortedBy { it.date }
         adapter.updateAppointments(filtered)
     }
@@ -264,9 +268,17 @@ class MainCalendarFragment : Fragment() {
 }
 
 // Función de extensión para comparar solo la fecha (sin hora)
-fun java.util.Date.isSameDay(other: java.util.Date): Boolean {
+fun java.util.Date.isSameDay(day: CalendarDay): Boolean {
     val cal1 = java.util.Calendar.getInstance().apply { time = this@isSameDay }
-    val cal2 = java.util.Calendar.getInstance().apply { time = other }
+    val cal2 = java.util.Calendar.getInstance().apply {
+        set(java.util.Calendar.YEAR, day.year)
+        set(java.util.Calendar.MONTH, day.month - 1)
+        set(java.util.Calendar.DAY_OF_MONTH, day.day)
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+    }
     return cal1.get(java.util.Calendar.YEAR) == cal2.get(java.util.Calendar.YEAR) &&
             cal1.get(java.util.Calendar.DAY_OF_YEAR) == cal2.get(java.util.Calendar.DAY_OF_YEAR)
 }
