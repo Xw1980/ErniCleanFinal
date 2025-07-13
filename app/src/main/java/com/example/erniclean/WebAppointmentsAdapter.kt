@@ -13,7 +13,9 @@ class WebAppointmentsAdapter(
     private var appointments: List<Appointment>,
     private val onCallClick: (Appointment) -> Unit,
     private val onWhatsappClick: (Appointment) -> Unit,
-    private val onItemClick: (Appointment) -> Unit
+    private val onItemClick: (Appointment) -> Unit,
+    private val onCompleteClick: (Appointment) -> Unit,
+    private val onPostponeClick: (Appointment) -> Unit
 ) : RecyclerView.Adapter<WebAppointmentsAdapter.ViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("EE", Locale("es"))
@@ -25,6 +27,7 @@ class WebAppointmentsAdapter(
         val clientPhone: TextView = view.findViewById(R.id.clientPhone)
         val clientAddress: TextView = view.findViewById(R.id.clientAddress)
         val serviceType: TextView = view.findViewById(R.id.serviceType)
+        val btnOptions = view.findViewById<android.widget.ImageButton>(R.id.btnOptions)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -45,6 +48,20 @@ class WebAppointmentsAdapter(
         holder.serviceType.text = appointment.serviceType
 
         holder.itemView.setOnClickListener { onItemClick(appointment) }
+
+        holder.btnOptions.setOnClickListener {
+            val popup = android.widget.PopupMenu(holder.itemView.context, holder.btnOptions)
+            popup.menu.add("Completar")
+            popup.menu.add("Posponer")
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.title) {
+                    "Completar" -> onCompleteClick(appointment)
+                    "Posponer" -> onPostponeClick(appointment)
+                }
+                true
+            }
+            popup.show()
+        }
     }
 
     override fun getItemCount() = appointments.size

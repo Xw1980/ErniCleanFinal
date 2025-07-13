@@ -23,7 +23,9 @@ class WebAppointmentsActivity : AppCompatActivity() {
             appointments = appointments,
             onCallClick = { appointment -> callClient(appointment.clientPhone) },
             onWhatsappClick = { appointment -> openWhatsapp(appointment.clientPhone) },
-            onItemClick = { appointment -> showAppointmentDetails(appointment) }
+            onItemClick = { appointment -> showAppointmentDetails(appointment) },
+            onCompleteClick = { /* TODO: implementar acción completar */ },
+            onPostponeClick = { /* TODO: implementar acción posponer */ }
         )
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter

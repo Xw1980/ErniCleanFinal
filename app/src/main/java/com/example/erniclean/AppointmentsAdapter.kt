@@ -25,7 +25,7 @@ class AppointmentsAdapter(
         val clientPhone: TextView = view.findViewById(R.id.clientPhone)
         val clientAddress: TextView = view.findViewById(R.id.clientAddress)
         val serviceType: TextView = view.findViewById(R.id.serviceType)
-        // btnPostpone eliminado del nuevo diseño
+        val btnOptions = view.findViewById<android.widget.ImageButton>(R.id.btnOptions)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -49,8 +49,10 @@ class AppointmentsAdapter(
             onItemClick(appointment)
         }
 
-        holder.itemView.setOnLongClickListener {
-            val popup = PopupMenu(holder.itemView.context, holder.itemView)
+        // Eliminar setOnLongClickListener
+        // Agregar click al botón de opciones
+        holder.btnOptions.setOnClickListener {
+            val popup = PopupMenu(holder.itemView.context, holder.btnOptions)
             popup.menu.add("Completar")
             popup.menu.add("Posponer")
             popup.setOnMenuItemClickListener { menuItem ->
@@ -61,9 +63,7 @@ class AppointmentsAdapter(
                 true
             }
             popup.show()
-            true
         }
-        // btnPostpone eliminado del nuevo diseño
     }
 
     override fun getItemCount() = appointments.size
