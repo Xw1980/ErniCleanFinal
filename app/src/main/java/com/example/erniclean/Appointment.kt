@@ -4,9 +4,9 @@ import java.util.Date
 
 data class Appointment(
     val id: String,
-    val clientName: String,
-    val clientPhone: String,
-    val clientAddress: String,
+    var clientName: String,
+    var clientPhone: String,
+    var clientAddress: String,
     val serviceType: String,
     var date: Date,
     var status: AppointmentStatus = AppointmentStatus.PENDING,

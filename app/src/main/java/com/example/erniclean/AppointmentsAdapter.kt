@@ -13,7 +13,8 @@ class AppointmentsAdapter(
     private var appointments: List<Appointment>,
     private val onItemClick: (Appointment) -> Unit,
     private val onCompleteClick: (Appointment) -> Unit,
-    private val onPostponeClick: (Appointment) -> Unit
+    private val onPostponeClick: (Appointment) -> Unit,
+    private val onEditClick: (Appointment) -> Unit // Nuevo callback para editar
 ) : RecyclerView.Adapter<AppointmentsAdapter.ViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("EE", Locale("es"))
@@ -55,10 +56,12 @@ class AppointmentsAdapter(
             val popup = PopupMenu(holder.itemView.context, holder.btnOptions)
             popup.menu.add("Completar")
             popup.menu.add("Posponer")
+            popup.menu.add("Editar")
             popup.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.title) {
                     "Completar" -> onCompleteClick(appointment)
                     "Posponer" -> onPostponeClick(appointment)
+                    "Editar" -> onEditClick(appointment)
                 }
                 true
             }

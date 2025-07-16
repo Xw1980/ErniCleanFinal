@@ -27,6 +27,11 @@ import com.prolificinteractive.materialcalendarview.CalendarDay
 import java.util.Calendar
 import java.util.Locale
 import android.widget.Button
+import android.app.Dialog
+import android.widget.GridView
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ImageButton
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewPager: ViewPager2
@@ -77,6 +82,24 @@ class MainCalendarFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_main_calendar, container, false)
         calendarView = view.findViewById(R.id.calendarView)
+        // Oculta el topbar (título y flechas)
+        val topbar = calendarView.getChildAt(0)
+        topbar?.visibility = View.GONE
+        calendarView.setWeekDayFormatter { dayOfWeek ->
+            when (dayOfWeek.value) {
+                1 -> "Dom"
+                2 -> "Lun"
+                3 -> "Mar"
+                4 -> "Mié"
+                5 -> "Jue"
+                6 -> "Vie"
+                7 -> "Sáb"
+                else -> ""
+            }
+        }
+        val tvMonthTitle = view.findViewById<TextView>(R.id.tvMonthTitle)
+        val btnPrevMonth = view.findViewById<ImageButton>(R.id.btnPrevMonth)
+        val btnNextMonth = view.findViewById<ImageButton>(R.id.btnNextMonth)
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewCitas)
         // Citas distribuidas en varios días del mes actual para pruebas
         val now = java.util.Calendar.getInstance()
@@ -94,21 +117,35 @@ class MainCalendarFragment : Fragment() {
             appointments,
             onItemClick = { appointment -> showAppointmentDetails(appointment) },
             onCompleteClick = {},
-            onPostponeClick = { appointment -> showPostponeDialog(appointment) }
+            onPostponeClick = { appointment -> showPostponeDialog(appointment) },
+            onEditClick = {} // No hace nada en este fragmento
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
         // Forzar idioma español en el calendario principal
         val locale = Locale("es", "ES")
-        calendarView.setTitleFormatter { day ->
-            val localDate = day.date
-            val monthName = org.threeten.bp.Month.of(localDate.monthValue).getDisplayName(org.threeten.bp.format.TextStyle.FULL, locale)
-            "${monthName.replaceFirstChar { it.uppercase(locale) }} ${localDate.year}"
+        fun updateMonthTitle() {
+            val date = calendarView.currentDate.date
+            val monthName = org.threeten.bp.Month.of(date.monthValue).getDisplayName(org.threeten.bp.format.TextStyle.FULL, locale)
+            tvMonthTitle.text = "${monthName.replaceFirstChar { it.uppercase(locale) }} ${date.year}"
         }
-        calendarView.setWeekDayFormatter { dayOfWeek ->
-            val symbols = java.text.DateFormatSymbols(locale)
-            val shortWeekdays = symbols.shortWeekdays
-            shortWeekdays[dayOfWeek.value % 7 + 1].uppercase(locale)
+        updateMonthTitle()
+        tvMonthTitle.setOnClickListener {
+            showMonthSelectorDialog(tvMonthTitle, ::updateMonthTitle)
+        }
+        btnPrevMonth.setOnClickListener {
+            val date = calendarView.currentDate.date.minusMonths(1)
+            calendarView.currentDate = CalendarDay.from(date)
+            updateMonthTitle()
+        }
+        btnNextMonth.setOnClickListener {
+            val date = calendarView.currentDate.date.plusMonths(1)
+            calendarView.currentDate = CalendarDay.from(date)
+            updateMonthTitle()
+        }
+        calendarView.setOnMonthChangedListener { _, _ ->
+            updateMonthTitle()
+            calendarView.invalidateDecorators()
         }
         // Seleccionar el día actual por defecto y mostrar citas de ese día
         selectedDay = CalendarDay.today()
@@ -256,6 +293,25 @@ class MainCalendarFragment : Fragment() {
             dialog.dismiss()
         }
         btnCancel.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun showMonthSelectorDialog(tvMonthTitle: TextView, updateMonthTitle: () -> Unit) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_month_selector, null)
+        val gridMonths = dialogView.findViewById<GridView>(R.id.gridMonths)
+        val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, months)
+        gridMonths.adapter = adapter
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(dialogView)
+        gridMonths.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
+            val currentYear = calendarView.currentDate.year
+            val newMonth = position + 1
+            val newDate = org.threeten.bp.LocalDate.of(currentYear, newMonth, 1)
+            calendarView.currentDate = CalendarDay.from(newDate)
+            updateMonthTitle()
+            dialog.dismiss()
+        }
         dialog.show()
     }
 

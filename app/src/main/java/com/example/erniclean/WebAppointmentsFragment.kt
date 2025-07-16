@@ -27,7 +27,8 @@ class WebAppointmentsFragment : Fragment() {
             onWhatsappClick = { appointment -> openWhatsapp(appointment.clientPhone) },
             onItemClick = { appointment -> showAppointmentDetails(appointment) },
             onCompleteClick = { /* TODO: implementar acción completar */ },
-            onPostponeClick = { /* TODO: implementar acción posponer */ }
+            onPostponeClick = { /* TODO: implementar acción posponer */ },
+            onEditClick = { appointment -> editAppointment(appointment) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
@@ -68,5 +69,40 @@ class WebAppointmentsFragment : Fragment() {
             .setPositiveButton("CERRAR") { dialog, _ -> dialog.dismiss() }
             .create()
             .show()
+    }
+
+    private fun editAppointment(appointment: Appointment) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_edit, null)
+        val editName = dialogView.findViewById<android.widget.EditText>(R.id.editClientName)
+        val editPhone = dialogView.findViewById<android.widget.EditText>(R.id.editClientPhone)
+        val editAddress = dialogView.findViewById<android.widget.EditText>(R.id.editClientAddress)
+        val btnSave = dialogView.findViewById<android.widget.Button>(R.id.btnSaveEditAppointment)
+
+        // Rellenar campos actuales
+        editName.setText(appointment.clientName)
+        editPhone.setText(appointment.clientPhone)
+        editAddress.setText(appointment.clientAddress)
+
+        val dialog = android.app.Dialog(requireContext())
+        dialog.setContentView(dialogView)
+        dialog.setCancelable(true)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnSave.setOnClickListener {
+            val newName = editName.text.toString().trim()
+            val newPhone = editPhone.text.toString().trim()
+            val newAddress = editAddress.text.toString().trim()
+            if (newName.isEmpty() || newPhone.isEmpty() || newAddress.isEmpty()) {
+                android.widget.Toast.makeText(requireContext(), "Todos los campos son obligatorios", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                appointment.clientName = newName
+                appointment.clientPhone = newPhone
+                appointment.clientAddress = newAddress
+                adapter.updateAppointments(appointments)
+                dialog.dismiss()
+                android.widget.Toast.makeText(requireContext(), "Cita actualizada", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+        dialog.show()
     }
 } 

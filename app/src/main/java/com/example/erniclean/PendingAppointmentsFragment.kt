@@ -31,7 +31,8 @@ class PendingAppointmentsFragment : Fragment() {
             appointments = appointments,
             onItemClick = { /* Eliminado: showAppointmentDetails(appointment) */ },
             onCompleteClick = { appointment -> completeAppointment(appointment) },
-            onPostponeClick = { appointment -> postponeAppointment(appointment) }
+            onPostponeClick = { appointment -> postponeAppointment(appointment) },
+            onEditClick = { appointment -> editAppointment(appointment) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
@@ -72,24 +73,41 @@ class PendingAppointmentsFragment : Fragment() {
     private fun postponeAppointment(appointment: Appointment) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_postpone, null)
         val calendarView = dialogView.findViewById<MaterialCalendarView>(R.id.calendarViewPostpone)
+        // Oculta el topbar (título y flechas)
+        val topbar = calendarView.getChildAt(0)
+        topbar?.visibility = View.GONE
         val tvPendingCount = dialogView.findViewById<TextView>(R.id.tvPendingCount)
         val btnConfirm = dialogView.findViewById<Button>(R.id.btnConfirmPostpone)
         val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelPostpone)
 
         // Configurar calendario en español y colores
         val locale = Locale("es", "ES")
-        calendarView.setTitleFormatter { day ->
-            val localDate = day.date
-            val monthName = org.threeten.bp.Month.of(localDate.monthValue).getDisplayName(org.threeten.bp.format.TextStyle.FULL, locale)
-            "${monthName.replaceFirstChar { it.uppercase(locale) }} ${localDate.year}"
-        }
+        // Oculta el título y las flechas grises
         calendarView.setWeekDayFormatter { dayOfWeek ->
-            val symbols = java.text.DateFormatSymbols(locale)
-            val shortWeekdays = symbols.shortWeekdays
-            shortWeekdays[dayOfWeek.value % 7 + 1].uppercase(locale)
+            when (dayOfWeek.value) {
+                1 -> "Dom"
+                2 -> "Lun"
+                3 -> "Mar"
+                4 -> "Mié"
+                5 -> "Jue"
+                6 -> "Vie"
+                7 -> "Sáb"
+                else -> ""
+            }
         }
         // Color de selección
         calendarView.selectionColor = resources.getColor(R.color.cyan, null)
+        // Decorador para días pasados: visibles pero no seleccionables
+        val today = CalendarDay.today()
+        calendarView.addDecorator(object : com.prolificinteractive.materialcalendarview.DayViewDecorator {
+            override fun shouldDecorate(day: CalendarDay): Boolean {
+                return day.isBefore(today)
+            }
+            override fun decorate(view: com.prolificinteractive.materialcalendarview.DayViewFacade) {
+                view.setDaysDisabled(true)
+                view.addSpan(android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#BDBDBD")))
+            }
+        })
         // Seleccionar la fecha actual de la cita
         val cal = Calendar.getInstance().apply { time = appointment.date }
         val selectedDay = CalendarDay.from(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
@@ -116,6 +134,7 @@ class PendingAppointmentsFragment : Fragment() {
         val dialog = Dialog(requireContext())
         dialog.setContentView(dialogView)
         dialog.setCancelable(false)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         btnConfirm.setOnClickListener {
             val newDate = calendarView.selectedDate?.date
@@ -135,12 +154,38 @@ class PendingAppointmentsFragment : Fragment() {
     }
 
     private fun editAppointment(appointment: Appointment) {
-        // Aquí puedes abrir una pantalla de edición o mostrar un diálogo para editar
-        // Por ahora solo muestra un mensaje
-        AlertDialog.Builder(requireContext())
-            .setMessage("Funcionalidad de edición próximamente")
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .show()
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_edit, null)
+        val editName = dialogView.findViewById<android.widget.EditText>(R.id.editClientName)
+        val editPhone = dialogView.findViewById<android.widget.EditText>(R.id.editClientPhone)
+        val editAddress = dialogView.findViewById<android.widget.EditText>(R.id.editClientAddress)
+        val btnSave = dialogView.findViewById<android.widget.Button>(R.id.btnSaveEditAppointment)
+
+        // Rellenar campos actuales
+        editName.setText(appointment.clientName)
+        editPhone.setText(appointment.clientPhone)
+        editAddress.setText(appointment.clientAddress)
+
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(dialogView)
+        dialog.setCancelable(true)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnSave.setOnClickListener {
+            val newName = editName.text.toString().trim()
+            val newPhone = editPhone.text.toString().trim()
+            val newAddress = editAddress.text.toString().trim()
+            if (newName.isEmpty() || newPhone.isEmpty() || newAddress.isEmpty()) {
+                Toast.makeText(requireContext(), "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show()
+            } else {
+                appointment.clientName = newName
+                appointment.clientPhone = newPhone
+                appointment.clientAddress = newAddress
+                adapter.updateAppointments(appointments)
+                dialog.dismiss()
+                Toast.makeText(requireContext(), "Cita actualizada", Toast.LENGTH_SHORT).show()
+            }
+        }
+        dialog.show()
     }
 
     private fun cancelAppointment(appointment: Appointment) {

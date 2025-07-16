@@ -15,7 +15,8 @@ class WebAppointmentsAdapter(
     private val onWhatsappClick: (Appointment) -> Unit,
     private val onItemClick: (Appointment) -> Unit,
     private val onCompleteClick: (Appointment) -> Unit,
-    private val onPostponeClick: (Appointment) -> Unit
+    private val onPostponeClick: (Appointment) -> Unit,
+    private val onEditClick: (Appointment) -> Unit // Nuevo callback para editar
 ) : RecyclerView.Adapter<WebAppointmentsAdapter.ViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("EE", Locale("es"))
@@ -27,6 +28,8 @@ class WebAppointmentsAdapter(
         val clientPhone: TextView = view.findViewById(R.id.clientPhone)
         val clientAddress: TextView = view.findViewById(R.id.clientAddress)
         val serviceType: TextView = view.findViewById(R.id.serviceType)
+        val btnCall: ImageButton = view.findViewById(R.id.btnCall)
+        val btnWhatsapp: ImageButton = view.findViewById(R.id.btnWhatsapp)
         val btnOptions = view.findViewById<android.widget.ImageButton>(R.id.btnOptions)
     }
 
@@ -48,15 +51,15 @@ class WebAppointmentsAdapter(
         holder.serviceType.text = appointment.serviceType
 
         holder.itemView.setOnClickListener { onItemClick(appointment) }
+        holder.btnCall.setOnClickListener { onCallClick(appointment) }
+        holder.btnWhatsapp.setOnClickListener { onWhatsappClick(appointment) }
 
         holder.btnOptions.setOnClickListener {
             val popup = android.widget.PopupMenu(holder.itemView.context, holder.btnOptions)
-            popup.menu.add("Completar")
-            popup.menu.add("Posponer")
+            popup.menu.add("Editar")
             popup.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.title) {
-                    "Completar" -> onCompleteClick(appointment)
-                    "Posponer" -> onPostponeClick(appointment)
+                    "Editar" -> onEditClick(appointment)
                 }
                 true
             }

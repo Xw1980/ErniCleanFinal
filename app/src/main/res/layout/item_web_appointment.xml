@@ -104,8 +104,8 @@
                 android:background="@drawable/circle_background"
                 android:src="@drawable/ic_phone"
                 android:contentDescription="Llamar"
-                android:padding="8dp"
-                android:tint="#00BCD4" />
+                android:padding="8dp" />
+
 
             <ImageButton
                 android:id="@+id/btnWhatsapp"
@@ -115,7 +115,7 @@
                 android:src="@drawable/ic_whatsapp"
                 android:contentDescription="WhatsApp"
                 android:padding="8dp"
-                android:tint="#00BCD4"
+
                 android:layout_marginStart="8dp" />
 
             <ImageButton
@@ -126,7 +126,7 @@
                 android:src="@drawable/ic_more_vert"
                 android:contentDescription="Opciones"
                 android:padding="8dp"
-                android:tint="#00BCD4"
+
                 android:layout_marginStart="8dp" />
         </LinearLayout>
     </LinearLayout>
