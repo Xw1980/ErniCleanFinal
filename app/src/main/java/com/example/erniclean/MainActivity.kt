@@ -45,7 +45,8 @@ class MainActivity : AppCompatActivity() {
         val fragments = listOf(
             MainCalendarFragment(),
             PendingAppointmentsFragment(),
-            WebAppointmentsFragment()
+            WebAppointmentsFragment(),
+            EvidenceFragment() // Agregamos el fragmento de evidencias
         )
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount() = fragments.size
@@ -58,6 +59,7 @@ class MainActivity : AppCompatActivity() {
                     0 -> bottomNavigation.selectedItemId = R.id.nav_home
                     1 -> bottomNavigation.selectedItemId = R.id.nav_clock
                     2 -> bottomNavigation.selectedItemId = R.id.nav_calendar
+                    3 -> bottomNavigation.selectedItemId = R.id.nav_folder
                 }
             }
         })
@@ -66,6 +68,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_home -> viewPager.currentItem = 0
                 R.id.nav_clock -> viewPager.currentItem = 1
                 R.id.nav_calendar -> viewPager.currentItem = 2
+                R.id.nav_folder -> viewPager.currentItem = 3
             }
             true
         }
