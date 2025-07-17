@@ -12,6 +12,10 @@ import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.erniclean.Evidencia
+import com.example.erniclean.EvidenciaDao
 
 class EditEvidenceActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
@@ -24,6 +28,8 @@ class EditEvidenceActivity : AppCompatActivity() {
     private lateinit var tvSave: TextView
     private var evidenceUri: Uri? = null
     private var isVideo: Boolean = false
+    private var evidenceId: Int = -1
+    private var citaId: Int = -1
 
     private val pickMediaLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -47,6 +53,8 @@ class EditEvidenceActivity : AppCompatActivity() {
 
         val uriString = intent.getStringExtra("evidenceUri")
         val type = intent.getStringExtra("evidenceType")
+        evidenceId = intent.getIntExtra("evidenceId", -1)
+        citaId = intent.getIntExtra("citaId", -1)
         evidenceUri = if (uriString != null) Uri.parse(uriString) else null
         isVideo = type == "video"
         showEvidence()
@@ -56,18 +64,43 @@ class EditEvidenceActivity : AppCompatActivity() {
             pickMediaLauncher.launch(mimeType)
         }
         btnDelete.setOnClickListener {
-            setResult(Activity.RESULT_OK, Intent().apply {
-                putExtra("action", "delete")
-            })
-            finish()
+            if (evidenceId != -1) {
+                lifecycleScope.launch {
+                    val evidenciaDao = ErniCleanApplication.database.evidenciaDao()
+                    evidenciaDao.eliminarEvidencia(Evidencia(id = evidenceId, citaId = citaId, uri = evidenceUri?.toString() ?: ""))
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra("action", "delete")
+                        putExtra("evidenceId", evidenceId)
+                    })
+                    finish()
+                }
+            } else {
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtra("action", "delete")
+                })
+                finish()
+            }
         }
         btnSave.setOnClickListener {
-            setResult(Activity.RESULT_OK, Intent().apply {
-                putExtra("action", "save")
-                putExtra("evidenceUri", evidenceUri.toString())
-                putExtra("evidenceType", if (isVideo) "video" else "image")
-            })
-            finish()
+            if (evidenceId != -1 && evidenceUri != null) {
+                lifecycleScope.launch {
+                    val evidenciaDao = ErniCleanApplication.database.evidenciaDao()
+                    evidenciaDao.eliminarEvidencia(Evidencia(id = evidenceId, citaId = citaId, uri = intent.getStringExtra("evidenceUri") ?: ""))
+                    evidenciaDao.insertarEvidencia(Evidencia(id = 0, citaId = citaId, uri = evidenceUri.toString()))
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra("action", "save")
+                        putExtra("evidenceUri", evidenceUri.toString())
+                        putExtra("evidenceId", evidenceId)
+                    })
+                    finish()
+                }
+            } else {
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtra("action", "save")
+                    putExtra("evidenceUri", evidenceUri.toString())
+                })
+                finish()
+            }
         }
     }
 
