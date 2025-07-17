@@ -14,7 +14,8 @@ class AppointmentsAdapter(
     private val onItemClick: (Appointment) -> Unit,
     private val onCompleteClick: (Appointment) -> Unit,
     private val onPostponeClick: (Appointment) -> Unit,
-    private val onEditClick: (Appointment) -> Unit // Nuevo callback para editar
+    private val onEditClick: (Appointment) -> Unit, // Nuevo callback para editar
+    private val showAddEvidenceButton: Boolean = false // Nuevo parámetro para decidir qué botón mostrar
 ) : RecyclerView.Adapter<AppointmentsAdapter.ViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("EE", Locale("es"))
@@ -26,6 +27,7 @@ class AppointmentsAdapter(
         val clientPhone: TextView = view.findViewById(R.id.clientPhone)
         val clientAddress: TextView = view.findViewById(R.id.clientAddress)
         val serviceType: TextView = view.findViewById(R.id.serviceType)
+        val btnAddEvidence = view.findViewById<android.widget.ImageButton>(R.id.btnAddEvidence)
         val btnOptions = view.findViewById<android.widget.ImageButton>(R.id.btnOptions)
     }
 
@@ -50,22 +52,39 @@ class AppointmentsAdapter(
             onItemClick(appointment)
         }
 
-        // Eliminar setOnLongClickListener
-        // Agregar click al botón de opciones
-        holder.btnOptions.setOnClickListener {
-            val popup = PopupMenu(holder.itemView.context, holder.btnOptions)
-            popup.menu.add("Completar")
-            popup.menu.add("Posponer")
-            popup.menu.add("Editar")
-            popup.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.title) {
-                    "Completar" -> onCompleteClick(appointment)
-                    "Posponer" -> onPostponeClick(appointment)
-                    "Editar" -> onEditClick(appointment)
+        if (showAddEvidenceButton) {
+            // Mostrar solo el botón '+' para citas completadas
+            if (appointment.status == AppointmentStatus.COMPLETED) {
+                holder.btnAddEvidence.visibility = View.VISIBLE
+                holder.btnAddEvidence.setOnClickListener {
+                    onEditClick(appointment)
                 }
-                true
+            } else {
+                holder.btnAddEvidence.visibility = View.GONE
+                holder.btnAddEvidence.setOnClickListener(null)
             }
-            popup.show()
+            holder.btnOptions.visibility = View.GONE
+            holder.btnOptions.setOnClickListener(null)
+        } else {
+            // Mostrar solo el botón de los tres puntos
+            holder.btnAddEvidence.visibility = View.GONE
+            holder.btnAddEvidence.setOnClickListener(null)
+            holder.btnOptions.visibility = View.VISIBLE
+            holder.btnOptions.setOnClickListener {
+                val popup = PopupMenu(holder.itemView.context, holder.btnOptions)
+                popup.menu.add("Completar")
+                popup.menu.add("Posponer")
+                popup.menu.add("Editar")
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.title) {
+                        "Completar" -> onCompleteClick(appointment)
+                        "Posponer" -> onPostponeClick(appointment)
+                        "Editar" -> onEditClick(appointment)
+                    }
+                    true
+                }
+                popup.show()
+            }
         }
     }
 

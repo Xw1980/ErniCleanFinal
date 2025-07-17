@@ -32,6 +32,7 @@ import android.widget.GridView
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
+import android.widget.LinearLayout
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewPager: ViewPager2
@@ -244,22 +245,62 @@ class MainCalendarFragment : Fragment() {
         val btnConfirm = dialogView.findViewById<Button>(R.id.btnConfirmPostpone)
         val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelPostpone)
 
-        val locale = Locale("es", "ES")
-        calendarDialog.setTitleFormatter { day ->
-            val localDate = day.date
-            val monthName = org.threeten.bp.Month.of(localDate.monthValue).getDisplayName(org.threeten.bp.format.TextStyle.FULL, locale)
-            "${monthName.replaceFirstChar { it.uppercase(locale) }} ${localDate.year}"
+        fun refreshDecorators() {
+            calendarDialog.removeDecorators()
+            calendarDialog.setWeekDayFormatter { dayOfWeek ->
+                when (dayOfWeek.value) {
+                    1 -> "Dom"
+                    2 -> "Lun"
+                    3 -> "Mar"
+                    4 -> "Mié"
+                    5 -> "Jue"
+                    6 -> "Vie"
+                    7 -> "Sáb"
+                    else -> ""
+                }
+            }
+            calendarDialog.selectionColor = resources.getColor(R.color.cyan, null)
+            val todayDate = org.threeten.bp.LocalDate.now()
+            calendarDialog.addDecorator(object : com.prolificinteractive.materialcalendarview.DayViewDecorator {
+                override fun shouldDecorate(day: com.prolificinteractive.materialcalendarview.CalendarDay): Boolean {
+                    val localDate = day.date
+                    return localDate.isBefore(todayDate)
+                }
+                override fun decorate(view: com.prolificinteractive.materialcalendarview.DayViewFacade) {
+                    view.setDaysDisabled(true)
+                    view.addSpan(android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#BDBDBD")))
+                }
+            })
+            calendarDialog.addDecorator(object : com.prolificinteractive.materialcalendarview.DayViewDecorator {
+                override fun shouldDecorate(day: com.prolificinteractive.materialcalendarview.CalendarDay): Boolean {
+                    val currentMonth = calendarDialog.currentDate.month
+                    val currentYear = calendarDialog.currentDate.year
+                    return (day.year < currentYear) || (day.year == currentYear && day.month < currentMonth) || (day.month != currentMonth)
+                }
+                override fun decorate(view: com.prolificinteractive.materialcalendarview.DayViewFacade) {
+                    view.addSpan(android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#BDBDBD")))
+                }
+            })
+            val pendingDates = appointments
+                .filter { it.status == AppointmentStatus.PENDING }
+                .map { appt ->
+                    val localDate = org.threeten.bp.LocalDate.of(
+                        appt.date.year + 1900,
+                        appt.date.month + 1,
+                        appt.date.date
+                    )
+                    com.prolificinteractive.materialcalendarview.CalendarDay.from(localDate)
+                }
+            calendarDialog.addDecorator(EventDecorator(android.graphics.Color.parseColor("#00BCD4"), pendingDates, 2f))
+            calendarDialog.invalidateDecorators()
         }
-        calendarDialog.setWeekDayFormatter { dayOfWeek ->
-            val symbols = java.text.DateFormatSymbols(locale)
-            val shortWeekdays = symbols.shortWeekdays
-            shortWeekdays[dayOfWeek.value % 7 + 1].uppercase(locale)
+        refreshDecorators()
+        calendarDialog.setOnMonthChangedListener { _, _ ->
+            refreshDecorators()
         }
-        calendarDialog.selectionColor = resources.getColor(R.color.cyan, null)
-        // Solo permitir seleccionar fechas futuras
-        calendarDialog.state().edit().setMinimumDate(CalendarDay.today()).commit()
+
         val cal = Calendar.getInstance().apply { time = appointment.date }
-        val selectedDay = CalendarDay.from(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+        val selectedDay = com.prolificinteractive.materialcalendarview.CalendarDay.from(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
         calendarDialog.selectedDate = selectedDay
 
         btnConfirm.isEnabled = false
@@ -297,21 +338,157 @@ class MainCalendarFragment : Fragment() {
         }
         btnCancel.setOnClickListener { dialog.dismiss() }
         dialog.show()
+
+        // Oculta el topbar del calendario (mes en inglés y flechas grises)
+        val topbar = calendarDialog.getChildAt(0)
+        topbar?.visibility = View.GONE
+
+        // Agrega un LinearLayout horizontal con flechas y título personalizado
+        val customMonthBar = LinearLayout(requireContext())
+        customMonthBar.id = View.generateViewId()
+        customMonthBar.orientation = LinearLayout.HORIZONTAL
+        customMonthBar.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        customMonthBar.gravity = Gravity.CENTER
+
+        val btnPrev = ImageButton(requireContext())
+        btnPrev.setImageResource(R.drawable.ic_chevron_left)
+        btnPrev.background = null
+        btnPrev.setColorFilter(resources.getColor(R.color.cyan, null))
+        val btnNext = ImageButton(requireContext())
+        btnNext.setImageResource(R.drawable.ic_chevron_right)
+        btnNext.background = null
+        btnNext.setColorFilter(resources.getColor(R.color.cyan, null))
+
+        val tvMonthTitle = TextView(requireContext())
+        tvMonthTitle.id = View.generateViewId()
+        tvMonthTitle.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        tvMonthTitle.gravity = Gravity.CENTER
+        tvMonthTitle.textSize = 20f
+        tvMonthTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        tvMonthTitle.setTextColor(resources.getColor(R.color.cyan, null))
+
+        customMonthBar.addView(btnPrev)
+        customMonthBar.addView(tvMonthTitle)
+        customMonthBar.addView(btnNext)
+
+        // Buscar el LinearLayout raíz recorriendo los hijos del MaterialCardView
+        var rootLayout: LinearLayout? = null
+        for (i in 0 until (dialogView as ViewGroup).childCount) {
+            val child = dialogView.getChildAt(i)
+            if (child is LinearLayout) {
+                rootLayout = child
+                break
+            }
+        }
+        val calendarIndex = rootLayout?.let { (0 until it.childCount).firstOrNull { idx -> it.getChildAt(idx).id == R.id.calendarViewPostpone } } ?: -1
+        if (rootLayout != null && calendarIndex != -1) {
+            rootLayout.addView(customMonthBar, calendarIndex)
+        } else if (rootLayout != null) {
+            rootLayout.addView(customMonthBar)
+        }
+
+        // Mostrar el mes en español
+        fun updateMonthTitleES() {
+            val locale = Locale("es", "ES")
+            val date = calendarDialog.currentDate.date
+            val monthName = org.threeten.bp.Month.of(date.monthValue).getDisplayName(org.threeten.bp.format.TextStyle.FULL, locale)
+            tvMonthTitle.text = "${monthName.replaceFirstChar { it.uppercase(locale) }} ${date.year}"
+        }
+        updateMonthTitleES()
+        // Flechas para cambiar de mes
+        btnPrev.setOnClickListener {
+            val date = calendarDialog.currentDate.date.minusMonths(1)
+            calendarDialog.currentDate = com.prolificinteractive.materialcalendarview.CalendarDay.from(date)
+            updateMonthTitleES()
+        }
+        btnNext.setOnClickListener {
+            val date = calendarDialog.currentDate.date.plusMonths(1)
+            calendarDialog.currentDate = com.prolificinteractive.materialcalendarview.CalendarDay.from(date)
+            updateMonthTitleES()
+        }
+        // Al hacer click en el título, abrir el selector moderno
+        tvMonthTitle.setOnClickListener {
+            showMonthSelectorDialog(tvMonthTitle) { updateMonthTitleES() }
+        }
+        // Actualizar el título al cambiar de mes
+        calendarDialog.setOnMonthChangedListener { _, _ ->
+            updateMonthTitleES()
+            refreshDecorators()
+        }
     }
 
     private fun showMonthSelectorDialog(tvMonthTitle: TextView, updateMonthTitle: () -> Unit) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_month_selector, null)
+        val header = dialogView.findViewById<LinearLayout>(R.id.headerYearSelector)
+        val btnPrevYearRange = dialogView.findViewById<ImageButton>(R.id.btnPrevYearRange)
+        val btnNextYearRange = dialogView.findViewById<ImageButton>(R.id.btnNextYearRange)
+        val tvYearRange = dialogView.findViewById<TextView>(R.id.tvYearRange)
+        val gridYears = dialogView.findViewById<GridView>(R.id.gridYears)
         val gridMonths = dialogView.findViewById<GridView>(R.id.gridMonths)
-        val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, months)
-        gridMonths.adapter = adapter
         val dialog = Dialog(requireContext())
         dialog.setContentView(dialogView)
-        gridMonths.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
-            val currentYear = calendarView.currentDate.year
-            val newMonth = position + 1
-            val newDate = org.threeten.bp.LocalDate.of(currentYear, newMonth, 1)
-            calendarView.currentDate = CalendarDay.from(newDate)
+
+        val months = listOf("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
+        val currentYear = calendarView.currentDate.year
+        val currentMonth = calendarView.currentDate.month
+        var yearRangeStart = (currentYear / 12) * 12
+        var selectedYear = currentYear
+
+        fun updateYearGrid() {
+            val years = (yearRangeStart until yearRangeStart + 12).toList()
+            tvYearRange.text = "${yearRangeStart}-${yearRangeStart + 11}"
+            gridYears.visibility = View.VISIBLE
+            gridMonths.visibility = View.GONE
+            val adapter = object : ArrayAdapter<Int>(requireContext(), android.R.layout.simple_list_item_1, years) {
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                    val view = super.getView(position, convertView, parent) as TextView
+                    view.text = years[position].toString()
+                    view.gravity = Gravity.CENTER
+                    view.textSize = 18f
+                    view.setPadding(0, 24, 0, 24)
+                    view.setTextColor(if (years[position] == currentYear) resources.getColor(R.color.cyan, null) else Color.BLACK)
+                    return view
+                }
+            }
+            gridYears.adapter = adapter
+        }
+
+        fun showMonthGrid(year: Int) {
+            selectedYear = year
+            gridYears.visibility = View.GONE
+            gridMonths.visibility = View.VISIBLE
+            val adapter = object : ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, months) {
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                    val view = super.getView(position, convertView, parent) as TextView
+                    view.text = months[position]
+                    view.gravity = Gravity.CENTER
+                    view.textSize = 18f
+                    view.setPadding(0, 24, 0, 24)
+                    view.setTextColor(if (selectedYear == currentYear && position + 1 == currentMonth) resources.getColor(R.color.cyan, null) else Color.BLACK)
+                    return view
+                }
+            }
+            gridMonths.adapter = adapter
+        }
+
+        updateYearGrid()
+
+        btnPrevYearRange.setOnClickListener {
+            yearRangeStart -= 12
+            updateYearGrid()
+        }
+        btnNextYearRange.setOnClickListener {
+            yearRangeStart += 12
+            updateYearGrid()
+        }
+        gridYears.setOnItemClickListener { _, _, position, _ ->
+            val year = yearRangeStart + position
+            showMonthGrid(year)
+        }
+        gridMonths.setOnItemClickListener { _, _, position, _ ->
+            val month = position + 1
+            val newDate = org.threeten.bp.LocalDate.of(selectedYear, month, 1)
+            calendarView.currentDate = com.prolificinteractive.materialcalendarview.CalendarDay.from(newDate)
             updateMonthTitle()
             dialog.dismiss()
         }
@@ -349,9 +526,9 @@ fun java.util.Calendar.setToStartOfDay() {
     set(java.util.Calendar.MILLISECOND, 0)
 }
 
-class EventDecorator(private val color: Int, private val dates: Collection<CalendarDay>) : DayViewDecorator {
+class EventDecorator(private val color: Int, private val dates: Collection<CalendarDay>, private val dotSize: Float = 8f) : DayViewDecorator {
     override fun shouldDecorate(day: CalendarDay): Boolean = dates.contains(day)
     override fun decorate(view: DayViewFacade) {
-        view.addSpan(com.prolificinteractive.materialcalendarview.spans.DotSpan(8f, color))
+        view.addSpan(com.prolificinteractive.materialcalendarview.spans.DotSpan(dotSize, color))
     }
 } 

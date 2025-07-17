@@ -42,6 +42,16 @@
             android:ellipsize="end" />
 
         <ImageButton
+            android:id="@+id/btnAddEvidence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_input_add"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Agregar evidencia"
+            android:tint="#00BCD4"
+            android:layout_marginStart="8dp"
+            android:visibility="gone" />
+        <ImageButton
             android:id="@+id/btnOptions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -49,7 +59,8 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Opciones"
             android:tint="#00BCD4"
-            android:layout_marginStart="8dp" />
+            android:layout_marginStart="8dp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout
