@@ -7,10 +7,10 @@ data class Appointment(
     var clientName: String,
     var clientPhone: String,
     var clientAddress: String,
-    val serviceType: String,
+    var serviceType: String,
     var date: Date,
     var status: AppointmentStatus = AppointmentStatus.PENDING,
-    val extras: String? = null,
+    var extras: String? = null,
     val evidenceUrls: List<String> = emptyList()
 )
 

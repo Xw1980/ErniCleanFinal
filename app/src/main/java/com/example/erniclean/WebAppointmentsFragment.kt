@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.widget.Button
 
 class WebAppointmentsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
@@ -72,37 +73,51 @@ class WebAppointmentsFragment : Fragment() {
     }
 
     private fun editAppointment(appointment: Appointment) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_edit, null)
-        val editName = dialogView.findViewById<android.widget.EditText>(R.id.editClientName)
-        val editPhone = dialogView.findViewById<android.widget.EditText>(R.id.editClientPhone)
-        val editAddress = dialogView.findViewById<android.widget.EditText>(R.id.editClientAddress)
-        val btnSave = dialogView.findViewById<android.widget.Button>(R.id.btnSaveEditAppointment)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_appointment, null)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvEditDialogTitle)
+        val tvDay = dialogView.findViewById<TextView>(R.id.tvEditDialogDay)
+        val etName = dialogView.findViewById<android.widget.EditText>(R.id.etEditName)
+        val etPhone = dialogView.findViewById<android.widget.EditText>(R.id.etEditPhone)
+        val etAddress = dialogView.findViewById<android.widget.EditText>(R.id.etEditAddress)
+        val etService = dialogView.findViewById<android.widget.EditText>(R.id.etEditService)
+        val etExtras = dialogView.findViewById<android.widget.EditText>(R.id.etEditExtras)
+        val btnConfirm = dialogView.findViewById<Button>(R.id.btnEditConfirm)
+        val btnYes = dialogView.findViewById<Button>(R.id.btnEditYes)
+        val btnNo = dialogView.findViewById<Button>(R.id.btnEditNo)
+
+        // Título y día
+        tvTitle.text = "CITAS"
+        val cal = java.util.Calendar.getInstance().apply { time = appointment.date }
+        val dayOfWeek = cal.getDisplayName(java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.LONG, java.util.Locale("es"))?.uppercase() ?: ""
+        val dayNumber = cal.get(java.util.Calendar.DAY_OF_MONTH)
+        tvDay.text = "$dayOfWeek $dayNumber"
 
         // Rellenar campos actuales
-        editName.setText(appointment.clientName)
-        editPhone.setText(appointment.clientPhone)
-        editAddress.setText(appointment.clientAddress)
+        etName.setText(appointment.clientName)
+        etPhone.setText(appointment.clientPhone)
+        etAddress.setText(appointment.clientAddress)
+        etService.setText(appointment.serviceType)
+        etExtras.setText(appointment.extras ?: "")
 
         val dialog = android.app.Dialog(requireContext())
         dialog.setContentView(dialogView)
         dialog.setCancelable(true)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        btnSave.setOnClickListener {
-            val newName = editName.text.toString().trim()
-            val newPhone = editPhone.text.toString().trim()
-            val newAddress = editAddress.text.toString().trim()
-            if (newName.isEmpty() || newPhone.isEmpty() || newAddress.isEmpty()) {
-                android.widget.Toast.makeText(requireContext(), "Todos los campos son obligatorios", android.widget.Toast.LENGTH_SHORT).show()
-            } else {
-                appointment.clientName = newName
-                appointment.clientPhone = newPhone
-                appointment.clientAddress = newAddress
-                adapter.updateAppointments(appointments)
-                dialog.dismiss()
-                android.widget.Toast.makeText(requireContext(), "Cita actualizada", android.widget.Toast.LENGTH_SHORT).show()
-            }
+        btnConfirm.setOnClickListener {
+            appointment.clientName = etName.text.toString().trim()
+            appointment.clientPhone = etPhone.text.toString().trim()
+            appointment.clientAddress = etAddress.text.toString().trim()
+            appointment.serviceType = etService.text.toString().trim()
+            try {
+                appointment.extras = etExtras.text.toString().trim()
+            } catch (_: Exception) {}
+            adapter.updateAppointments(appointments)
+            dialog.dismiss()
+            android.widget.Toast.makeText(requireContext(), "Cita actualizada", android.widget.Toast.LENGTH_SHORT).show()
         }
+        btnYes.setOnClickListener { btnConfirm.performClick() }
+        btnNo.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 } 

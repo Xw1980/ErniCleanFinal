@@ -15,7 +15,8 @@ class AppointmentsAdapter(
     private val onCompleteClick: (Appointment) -> Unit,
     private val onPostponeClick: (Appointment) -> Unit,
     private val onEditClick: (Appointment) -> Unit, // Nuevo callback para editar
-    private val showAddEvidenceButton: Boolean = false // Nuevo parámetro para decidir qué botón mostrar
+    private val showAddEvidenceButton: Boolean = false, // Nuevo parámetro para decidir qué botón mostrar
+    private val showEditOption: Boolean = false // Nuevo parámetro para mostrar 'Editar'
 ) : RecyclerView.Adapter<AppointmentsAdapter.ViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("EE", Locale("es"))
@@ -52,29 +53,23 @@ class AppointmentsAdapter(
             onItemClick(appointment)
         }
 
+        // Ocultar SIEMPRE el botón '+' en todas las pantallas
+        holder.btnAddEvidence.visibility = View.GONE
+        holder.btnAddEvidence.setOnClickListener(null)
+
+        // Ocultar los tres puntos en la pantalla de evidencias
         if (showAddEvidenceButton) {
-            // Mostrar solo el botón '+' para citas completadas
-            if (appointment.status == AppointmentStatus.COMPLETED) {
-                holder.btnAddEvidence.visibility = View.VISIBLE
-                holder.btnAddEvidence.setOnClickListener {
-                    onEditClick(appointment)
-                }
-            } else {
-                holder.btnAddEvidence.visibility = View.GONE
-                holder.btnAddEvidence.setOnClickListener(null)
-            }
             holder.btnOptions.visibility = View.GONE
             holder.btnOptions.setOnClickListener(null)
         } else {
-            // Mostrar solo el botón de los tres puntos
-            holder.btnAddEvidence.visibility = View.GONE
-            holder.btnAddEvidence.setOnClickListener(null)
             holder.btnOptions.visibility = View.VISIBLE
             holder.btnOptions.setOnClickListener {
                 val popup = PopupMenu(holder.itemView.context, holder.btnOptions)
                 popup.menu.add("Completar")
                 popup.menu.add("Posponer")
-                popup.menu.add("Editar")
+                if (showEditOption) {
+                    popup.menu.add("Editar")
+                }
                 popup.setOnMenuItemClickListener { menuItem ->
                     when (menuItem.title) {
                         "Completar" -> onCompleteClick(appointment)

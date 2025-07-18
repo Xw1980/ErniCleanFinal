@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/tvEditDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CITAS"
+        android:textStyle="bold"
+        android:textColor="#00BCD4"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bordered_background"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/tvEditDialogDay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MIÉRCOLES 18"
+            android:textColor="#00BCD4"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="#E0F7FA"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/etEditName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre"/>
+        <EditText
+            android:id="@+id/etEditPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Número"/>
+        <EditText
+            android:id="@+id/etEditAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Dirección"/>
+        <EditText
+            android:id="@+id/etEditService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Servicio"/>
+        <EditText
+            android:id="@+id/etEditExtras"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Extras"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <Button
+            android:id="@+id/btnEditConfirm"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Confirmar"/>
+        <Button
+            android:id="@+id/btnEditYes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SI"/>
+        <Button
+            android:id="@+id/btnEditNo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="NO"/>
+    </LinearLayout>
+</LinearLayout> 

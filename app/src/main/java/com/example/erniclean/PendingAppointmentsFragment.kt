@@ -24,6 +24,7 @@ import android.widget.GridView
 import android.graphics.Color
 import android.view.Gravity
 import android.widget.ArrayAdapter
+import android.content.Intent
 
 class PendingAppointmentsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
@@ -36,11 +37,13 @@ class PendingAppointmentsFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_pending_appointments, container, false)
         recyclerView = view.findViewById(R.id.appointmentsRecyclerView)
         adapter = AppointmentsAdapter(
-            appointments = appointments,
-            onItemClick = { /* Eliminado: showAppointmentDetails(appointment) */ },
+            appointments,
+            onItemClick = { /* No hacer nada al clickear la tarjeta */ },
             onCompleteClick = { appointment -> completeAppointment(appointment) },
             onPostponeClick = { appointment -> postponeAppointment(appointment) },
-            onEditClick = { appointment -> editAppointment(appointment) }
+            onEditClick = { appointment -> editAppointment(appointment) },
+            showAddEvidenceButton = false,
+            showEditOption = true
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
@@ -322,37 +325,52 @@ class PendingAppointmentsFragment : Fragment() {
     }
 
     private fun editAppointment(appointment: Appointment) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_edit, null)
-        val editName = dialogView.findViewById<android.widget.EditText>(R.id.editClientName)
-        val editPhone = dialogView.findViewById<android.widget.EditText>(R.id.editClientPhone)
-        val editAddress = dialogView.findViewById<android.widget.EditText>(R.id.editClientAddress)
-        val btnSave = dialogView.findViewById<android.widget.Button>(R.id.btnSaveEditAppointment)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_appointment, null)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvEditDialogTitle)
+        val tvDay = dialogView.findViewById<TextView>(R.id.tvEditDialogDay)
+        val etName = dialogView.findViewById<android.widget.EditText>(R.id.etEditName)
+        val etPhone = dialogView.findViewById<android.widget.EditText>(R.id.etEditPhone)
+        val etAddress = dialogView.findViewById<android.widget.EditText>(R.id.etEditAddress)
+        val etService = dialogView.findViewById<android.widget.EditText>(R.id.etEditService)
+        val etExtras = dialogView.findViewById<android.widget.EditText>(R.id.etEditExtras)
+        val btnConfirm = dialogView.findViewById<Button>(R.id.btnEditConfirm)
+        val btnYes = dialogView.findViewById<Button>(R.id.btnEditYes)
+        val btnNo = dialogView.findViewById<Button>(R.id.btnEditNo)
+
+        // Título y día
+        tvTitle.text = "CITAS"
+        val cal = java.util.Calendar.getInstance().apply { time = appointment.date }
+        val dayOfWeek = cal.getDisplayName(java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.LONG, java.util.Locale("es"))?.uppercase() ?: ""
+        val dayNumber = cal.get(java.util.Calendar.DAY_OF_MONTH)
+        tvDay.text = "$dayOfWeek $dayNumber"
 
         // Rellenar campos actuales
-        editName.setText(appointment.clientName)
-        editPhone.setText(appointment.clientPhone)
-        editAddress.setText(appointment.clientAddress)
+        etName.setText(appointment.clientName)
+        etPhone.setText(appointment.clientPhone)
+        etAddress.setText(appointment.clientAddress)
+        etService.setText(appointment.serviceType)
+        etExtras.setText(appointment.extras ?: "")
 
         val dialog = Dialog(requireContext())
         dialog.setContentView(dialogView)
         dialog.setCancelable(true)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        btnSave.setOnClickListener {
-            val newName = editName.text.toString().trim()
-            val newPhone = editPhone.text.toString().trim()
-            val newAddress = editAddress.text.toString().trim()
-            if (newName.isEmpty() || newPhone.isEmpty() || newAddress.isEmpty()) {
-                Toast.makeText(requireContext(), "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show()
-            } else {
-                appointment.clientName = newName
-                appointment.clientPhone = newPhone
-                appointment.clientAddress = newAddress
-                adapter.updateAppointments(appointments)
-                dialog.dismiss()
-                Toast.makeText(requireContext(), "Cita actualizada", Toast.LENGTH_SHORT).show()
-            }
+        btnConfirm.setOnClickListener {
+            appointment.clientName = etName.text.toString().trim()
+            appointment.clientPhone = etPhone.text.toString().trim()
+            appointment.clientAddress = etAddress.text.toString().trim()
+            appointment.serviceType = etService.text.toString().trim()
+            // Para extras, si la data class Appointment tiene val, hay que crear una copia
+            try {
+                appointment.extras = etExtras.text.toString().trim()
+            } catch (_: Exception) {}
+            adapter.updateAppointments(appointments)
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "Cita actualizada", Toast.LENGTH_SHORT).show()
         }
+        btnYes.setOnClickListener { btnConfirm.performClick() }
+        btnNo.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
