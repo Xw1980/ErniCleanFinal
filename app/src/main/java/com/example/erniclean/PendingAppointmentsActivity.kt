@@ -25,7 +25,8 @@ class PendingAppointmentsActivity : AppCompatActivity() {
             onItemClick = { appointment -> showAppointmentDetails(appointment) },
             onCompleteClick = { appointment -> showOptionsDialog(appointment) },
             onPostponeClick = { appointment -> showOptionsDialog(appointment) },
-            onEditClick = {} // No hace nada aquí
+            onEditClick = {}, // No hace nada aquí
+            showEditOption = true
         )
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter

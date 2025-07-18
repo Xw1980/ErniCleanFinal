@@ -14,8 +14,6 @@ import androidx.core.view.isVisible
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import com.example.erniclean.Evidencia
-import com.example.erniclean.EvidenciaDao
 
 class EditEvidenceActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView

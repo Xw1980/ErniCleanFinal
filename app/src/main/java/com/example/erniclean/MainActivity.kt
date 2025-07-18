@@ -122,7 +122,8 @@ class MainCalendarFragment : Fragment() {
             onItemClick = { appointment -> showAppointmentDetails(appointment) },
             onCompleteClick = {},
             onPostponeClick = { appointment -> showPostponeDialog(appointment) },
-            onEditClick = {} // No hace nada en este fragmento
+            onEditClick = {}, // No hace nada en este fragmento
+            showEditOption = false
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter

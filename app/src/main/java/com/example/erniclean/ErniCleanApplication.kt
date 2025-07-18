@@ -1,8 +1,7 @@
 package com.example.erniclean
 
-import androidx.room.Room
 import android.app.Application
-import com.jakewharton.threetenabp.AndroidThreeTen
+import androidx.room.Room
 
 class ErniCleanApplication : Application() {
     companion object {
@@ -12,7 +11,6 @@ class ErniCleanApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        AndroidThreeTen.init(this)
         database = Room.databaseBuilder(
             applicationContext,
             ErniCleanDatabase::class.java,
