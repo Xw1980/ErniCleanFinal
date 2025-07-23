@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    tools:context=".MainActivity">
+
+    <!-- Contenedor visual moderno para el calendario -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@drawable/modern_calendar_bg"
+        android:elevation="4dp"
+        android:padding="12dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical|center_horizontal"
+            android:paddingBottom="8dp">
+
+            <ImageButton
+                android:id="@+id/btnPrevMonth"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_chevron_left"
+                android:contentDescription="Anterior"
+                android:tint="@color/cyan"/>
+
+            <TextView
+                android:id="@+id/tvMonthTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Julio 2025"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="@color/cyan"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+            <ImageButton
+                android:id="@+id/btnNextMonth"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_chevron_right"
+                android:contentDescription="Siguiente"
+                android:tint="@color/cyan"/>
+        </LinearLayout>
+
+        <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+            android:id="@+id/calendarView"
+            android:layout_width="match_parent"
+            android:layout_height="380dp"
+            android:layout_gravity="center_horizontal"
+            tools:ignore="MissingConstraints"/>
+    </LinearLayout>
+
+    <!-- Título de pendientes -->
+    <TextView
+        android:id="@+id/tvPendientes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PENDIENTES DEL DÍA"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/cyan"
+        android:paddingStart="16dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="8dp"
+        android:background="@android:color/white"/>
+
+    <!-- Lista de citas -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewCitas"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:clipToPadding="false"/>
+
+</LinearLayout> 

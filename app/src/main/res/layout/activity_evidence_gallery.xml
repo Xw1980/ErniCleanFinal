@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvGalleryTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="EVIDENCIA"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#00BCD4"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewGallery"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tvGalleryTitle"
+        android:layout_above="@id/fabMenu"
+        android:layout_marginTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:clipToPadding="false"
+        android:overScrollMode="never"/>
+
+    <LinearLayout
+        android:id="@+id/fabMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="24dp"
+        android:background="@android:color/transparent">
+
+        <ImageButton
+            android:id="@+id/btnDeleteEvidence"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="@android:color/white"
+            android:tint="#00BCD4"
+            android:elevation="8dp"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/btnSelectEvidence"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@android:drawable/ic_menu_agenda"
+            android:background="@android:color/white"
+            android:tint="#00BCD4"
+            android:elevation="8dp"/>
+
+        <ImageButton
+            android:id="@+id/btnAddEvidence"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@android:drawable/ic_menu_add"
+            android:background="@android:color/white"
+            android:tint="#00BCD4"
+            android:elevation="8dp"/>
+    </LinearLayout>
+
+</RelativeLayout> 

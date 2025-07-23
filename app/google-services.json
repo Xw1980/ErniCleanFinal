@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "814639238647",
+    "project_id": "erni-clean",
+    "storage_bucket": "erni-clean.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814639238647:android:4be54aacb46f19d6e3b2f2",
+        "android_client_info": {
+          "package_name": "com.example.erniclean"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBS0j0Dpj2nTI_B13r_9x1HuLqmy5F3dI0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

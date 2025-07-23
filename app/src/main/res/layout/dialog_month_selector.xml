@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="16dp">
+
+    <!-- Header para rango de años -->
+    <LinearLayout
+        android:id="@+id/headerYearSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical|center_horizontal"
+        android:paddingBottom="8dp">
+
+        <ImageButton
+            android:id="@+id/btnPrevYearRange"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_chevron_left"
+            android:contentDescription="Anterior" />
+
+        <TextView
+            android:id="@+id/tvYearRange"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="2016-2027"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@color/cyan" />
+
+        <ImageButton
+            android:id="@+id/btnNextYearRange"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_chevron_right"
+            android:contentDescription="Siguiente" />
+    </LinearLayout>
+
+    <!-- Cuadrícula de años -->
+    <GridView
+        android:id="@+id/gridYears"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:numColumns="4"
+        android:verticalSpacing="12dp"
+        android:horizontalSpacing="12dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center" />
+
+    <!-- Cuadrícula de meses (inicialmente GONE) -->
+    <GridView
+        android:id="@+id/gridMonths"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:numColumns="3"
+        android:verticalSpacing="12dp"
+        android:horizontalSpacing="12dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center"
+        android:visibility="gone" />
+
+</LinearLayout> 
