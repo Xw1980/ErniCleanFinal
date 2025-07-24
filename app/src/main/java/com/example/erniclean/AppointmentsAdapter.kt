@@ -28,8 +28,8 @@ class AppointmentsAdapter(
         val clientPhone: TextView = view.findViewById(R.id.clientPhone)
         val clientAddress: TextView = view.findViewById(R.id.clientAddress)
         val serviceType: TextView = view.findViewById(R.id.serviceType)
-        val btnAddEvidence = view.findViewById<android.widget.ImageButton>(R.id.btnAddEvidence)
-        val btnOptions = view.findViewById<android.widget.ImageButton>(R.id.btnOptions)
+        val btnAddEvidence: android.widget.ImageButton? = view.findViewById(R.id.btnAddEvidence)
+        val btnOptions: android.widget.ImageButton? = view.findViewById(R.id.btnOptions)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -54,31 +54,35 @@ class AppointmentsAdapter(
         }
 
         // Ocultar SIEMPRE el botón '+' en todas las pantallas
-        holder.btnAddEvidence.visibility = View.GONE
-        holder.btnAddEvidence.setOnClickListener(null)
+        holder.btnAddEvidence?.let {
+            it.visibility = View.GONE
+            it.setOnClickListener(null)
+        }
 
         // Ocultar los tres puntos en la pantalla de evidencias
-        if (showAddEvidenceButton) {
-            holder.btnOptions.visibility = View.GONE
-            holder.btnOptions.setOnClickListener(null)
-        } else {
-            holder.btnOptions.visibility = View.VISIBLE
-            holder.btnOptions.setOnClickListener {
-                val popup = PopupMenu(holder.itemView.context, holder.btnOptions)
-                popup.menu.add("Completar")
-                popup.menu.add("Posponer")
-                if (showEditOption) {
-                    popup.menu.add("Editar")
-                }
-                popup.setOnMenuItemClickListener { menuItem ->
-                    when (menuItem.title) {
-                        "Completar" -> onCompleteClick(appointment)
-                        "Posponer" -> onPostponeClick(appointment)
-                        "Editar" -> onEditClick(appointment)
+        holder.btnOptions?.let { btnOptions ->
+            if (showAddEvidenceButton) {
+                btnOptions.visibility = View.GONE
+                btnOptions.setOnClickListener(null)
+            } else {
+                btnOptions.visibility = View.VISIBLE
+                btnOptions.setOnClickListener {
+                    val popup = PopupMenu(holder.itemView.context, btnOptions)
+                    popup.menu.add("Completar")
+                    popup.menu.add("Posponer")
+                    if (showEditOption) {
+                        popup.menu.add("Editar")
                     }
-                    true
+                    popup.setOnMenuItemClickListener { menuItem ->
+                        when (menuItem.title) {
+                            "Completar" -> onCompleteClick(appointment)
+                            "Posponer" -> onPostponeClick(appointment)
+                            "Editar" -> onEditClick(appointment)
+                        }
+                        true
+                    }
+                    popup.show()
                 }
-                popup.show()
             }
         }
     }

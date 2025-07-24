@@ -111,7 +111,6 @@ class WebAppointmentsFragment : Fragment() {
         val etService = dialogView.findViewById<android.widget.EditText>(R.id.etEditService)
         val etExtras = dialogView.findViewById<android.widget.EditText>(R.id.etEditExtras)
         val btnConfirm = dialogView.findViewById<Button>(R.id.btnEditConfirm)
-        val btnYes = dialogView.findViewById<Button>(R.id.btnEditYes)
         val btnNo = dialogView.findViewById<Button>(R.id.btnEditNo)
 
         // Título y día
@@ -162,7 +161,6 @@ class WebAppointmentsFragment : Fragment() {
             dialog.dismiss()
             android.widget.Toast.makeText(requireContext(), "Cita actualizada", android.widget.Toast.LENGTH_SHORT).show()
         }
-        btnYes.setOnClickListener { btnConfirm.performClick() }
         btnNo.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }

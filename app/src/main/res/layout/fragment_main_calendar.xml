@@ -13,8 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:background="@drawable/modern_calendar_bg"
-        android:elevation="4dp"
-        android:padding="12dp"
+        android:elevation="1dp"
+        android:padding="10dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -73,19 +73,19 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@color/cyan"
-        android:paddingStart="16dp"
+        android:paddingStart="20dp"
         android:paddingTop="0dp"
-        android:paddingBottom="8dp"
+        android:paddingBottom="0dp"
         android:background="@android:color/white"/>
 
     <!-- Lista de citas -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCitas"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="10dp"
         android:layout_weight="1"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:clipToPadding="false"/>
+        android:clipToPadding="true"/>
 
 </LinearLayout> 
