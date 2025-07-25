@@ -17,20 +17,27 @@ class PendingAppointmentsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main) // Reutilizamos el layout principal para mantener el estilo
-
+        // --- TRANSPARENCIA EN BARRAS DEL SISTEMA ---
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+        // -------------------------------------------
+        // Cambia el layout a uno propio si existe, por ejemplo:
+        // setContentView(R.layout.activity_pending_appointments)
+        // Si no existe, crea el layout con un RecyclerView con id appointmentsRecyclerView
         recyclerView = findViewById(R.id.appointmentsRecyclerView)
         adapter = AppointmentsAdapter(
             appointments = appointments,
             onItemClick = { appointment -> showAppointmentDetails(appointment) },
             onCompleteClick = { appointment -> showOptionsDialog(appointment) },
             onPostponeClick = { appointment -> showOptionsDialog(appointment) },
-            onEditClick = {}, // No hace nada aquí
+            onEditClick = {},
             showEditOption = true
         )
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
-
         loadPendingAppointments()
     }
 

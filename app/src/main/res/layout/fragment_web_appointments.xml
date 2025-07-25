@@ -11,12 +11,12 @@
         android:id="@+id/titleWeb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Citas Web"
-        android:textSize="22sp"
-        android:textStyle="bold"
         android:gravity="center"
-        android:textColor="#03A9F4"
-        android:padding="16dp"/>
+        android:padding="16dp"
+        android:text="Citas Web"
+        android:textColor="#00BCD4"
+        android:textSize="22sp"
+        android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/appointmentsRecyclerView"

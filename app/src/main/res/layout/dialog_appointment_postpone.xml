@@ -34,7 +34,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="8dp"
             android:text=""
-            android:textColor="@color/cyan"
+            android:textColor="#C52D26"
             android:textSize="16sp"
             android:visibility="gone" />
 

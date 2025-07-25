@@ -1,6 +1,7 @@
 package com.example.erniclean
 
 import android.os.Bundle
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -47,7 +48,7 @@ class MainActivity : AppCompatActivity() {
             MainCalendarFragment(),
             PendingAppointmentsFragment(),
             WebAppointmentsFragment(),
-            EvidenceFragment() // Agregamos el fragmento de evidencias
+            EvidenceFragment()
         )
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount() = fragments.size
@@ -323,6 +324,7 @@ class MainCalendarFragment : Fragment() {
         val dialog = android.app.Dialog(requireContext())
         dialog.setContentView(dialogView)
         dialog.setCancelable(false)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         btnConfirm.setOnClickListener {
             val newDate = calendarDialog.selectedDate?.date
