@@ -13,7 +13,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="80dp"
         android:layout_height="90dp"
-        app:cardBackgroundColor="#00BCD4"
+        app:cardBackgroundColor="#142634"
         app:cardCornerRadius="12dp"
         app:cardElevation="2dp">
 
@@ -57,7 +57,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="NOMBRE"
-            android:textColor="@android:color/black"
+            android:textColor="#142634"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:text="NUMERO"
-            android:textColor="#757575"
+            android:textColor="#142634"
             android:textSize="14sp" />
 
         <TextView
@@ -76,7 +76,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:text="DIRECCION"
-            android:textColor="#757575"
+            android:textColor="#142634"
             android:textSize="14sp" />
 
         <TextView
@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="TIPO DE SERVICIO"
-            android:textColor="#00BCD4"
+            android:textColor="#142634"
             android:textSize="14sp"
             android:textStyle="bold" />
 

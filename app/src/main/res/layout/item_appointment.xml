@@ -13,7 +13,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="80dp"
         android:layout_height="100dp"
-        app:cardBackgroundColor="#00BCD4"
+        app:cardBackgroundColor="#142634"
         app:cardCornerRadius="12dp"
         app:cardElevation="2dp">
 
@@ -49,56 +49,71 @@
         android:layout_marginStart="10dp"
         android:layout_weight="1"
         android:background="@drawable/bordered_background"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:padding="12dp">
 
-        <TextView
-            android:id="@+id/clientName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="NOMBRE"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/clientPhone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="NUMERO"
-            android:textColor="#757575"
-            android:textSize="14sp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/clientAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="DIRECCION"
-            android:textColor="#757575"
-            android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/clientName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="NOMBRE"
+                        android:textColor="#142634"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/serviceType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="TIPO DE SERVICIO"
-            android:textColor="#00BCD4"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+                    <ImageButton
+                        android:id="@+id/btnOptions"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:contentDescription="Opciones"
+                        android:src="@drawable/ic_more_vert"
+                        android:tint="#E53935" />
+                </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/btnOptions"
-            android:layout_width="52dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/cardview_default_elevation"
-            android:background="?selectableItemBackgroundBorderless"
-            android:contentDescription="Opciones"
-            android:src="@drawable/ic_more_vert" />
+                <TextView
+                    android:id="@+id/clientPhone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="NUMERO"
+                    android:textColor="#142634"
+                    android:textSize="14sp" />
 
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/clientAddress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="DIRECCION"
+                    android:textColor="#142634"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/serviceType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="TIPO DE SERVICIO"
+                    android:textColor="#142634"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
 
 
 </LinearLayout>

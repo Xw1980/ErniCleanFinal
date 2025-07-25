@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:padding="18dp"
     android:background="#00FFFFFF">
 
 
@@ -21,8 +21,8 @@
             android:layout_height="wrap_content"
             android:text="CITAS"
             android:textStyle="bold"
-            android:textColor="#00BCD4"
-            android:textSize="20sp"
+            android:textColor="#142634"
+            android:textSize="26sp"
             android:gravity="center"
             android:layout_marginBottom="8dp"/>
         <TextView
@@ -30,11 +30,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="MIÉRCOLES 18"
-            android:textColor="#00BCD4"
+            android:textColor="#142634"
             android:textStyle="bold"
             android:textSize="18sp"
             android:gravity="center"
-            android:background="#E0F7FA"
             android:padding="8dp"
             android:layout_marginBottom="8dp"/>
 
@@ -42,50 +41,60 @@
             android:id="@+id/etEditName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nombre"/>
+            android:hint="Nombre"
+            android:textColor="#142634"/>
         <EditText
             android:id="@+id/etEditPhone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Número"/>
+            android:hint="Número"
+            android:textColor="#142634"/>
         <EditText
             android:id="@+id/etEditAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Dirección"/>
+            android:hint="Dirección"
+            android:textColor="#142634"/>
         <EditText
             android:id="@+id/etEditService"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Servicio"/>
+            android:hint="Servicio"
+            android:textColor="#142634"/>
 
         <EditText
             android:id="@+id/etEditExtras"
             android:layout_width="match_parent"
             android:layout_height="94dp"
+            android:textColor="#142634"
             android:hint="Extras" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="end"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:padding="0dp">
 
             <Button
                 android:id="@+id/btnEditConfirm"
-                android:layout_width="160dp"
+                android:layout_width="28dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="7"
+                android:backgroundTint="@color/cyan"
                 android:text="Confirmar" />
 
             <Button
                 android:id="@+id/btnEditNo"
-                android:layout_width="170dp"
+                android:layout_width="28dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="7"
+                android:backgroundTint="#C52D26"
                 android:text="Descartar" />
         </LinearLayout>
     </LinearLayout>
 
 
-</LinearLayout> 
+</LinearLayout>
