@@ -83,7 +83,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="7"
                 android:backgroundTint="@color/cyan"
-                android:text="Confirmar" />
+                android:text="Aceptar" />
 
             <Button
                 android:id="@+id/btnEditNo"
@@ -92,7 +92,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="7"
                 android:backgroundTint="#C52D26"
-                android:text="Descartar" />
+                android:text="Eliminar" />
         </LinearLayout>
     </LinearLayout>
 

@@ -11,6 +11,7 @@ data class Appointment(
     var date: Date,
     var status: AppointmentStatus = AppointmentStatus.PENDING,
     var extras: String? = null,
+    var clientEmail: String = "",
     val evidenceUrls: List<String> = emptyList()
 )
 

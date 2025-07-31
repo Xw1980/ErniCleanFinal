@@ -50,7 +50,7 @@
                     android:id="@+id/tvDetailDayOfWeek"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MI"
+                    android:text=""
                     android:textColor="#fff"
                     android:textStyle="bold"
                     android:textSize="14sp"/>
@@ -58,7 +58,7 @@
                     android:id="@+id/tvDetailDayNumber"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="18"
+                    android:text=""
                     android:textColor="#fff"
                     android:textStyle="bold"
                     android:textSize="20sp"/>
@@ -75,28 +75,28 @@
                     android:id="@+id/tvDetailName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="NOMBRE"
+                    android:text=""
                     android:textColor="#333"
                     android:textSize="15sp"/>
                 <TextView
                     android:id="@+id/tvDetailPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="NUMERO"
+                    android:text=""
                     android:textColor="#333"
                     android:textSize="15sp"/>
                 <TextView
                     android:id="@+id/tvDetailAddress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="DIRECCION"
+                    android:text=""
                     android:textColor="#333"
                     android:textSize="15sp"/>
                 <TextView
                     android:id="@+id/tvDetailService"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="TIPO DE SERVICIO"
+                    android:text=""
                     android:textColor="#333"
                     android:textSize="15sp"/>
             </LinearLayout>

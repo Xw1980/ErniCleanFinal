@@ -25,21 +25,28 @@ import android.graphics.Color
 import android.view.Gravity
 import android.widget.ArrayAdapter
 import android.content.Intent
+import com.google.firebase.firestore.FirebaseFirestore
 
 class PendingAppointmentsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AppointmentsAdapter
     private var appointments = mutableListOf<Appointment>()
+    private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
+    private lateinit var titlePending: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_pending_appointments, container, false)
         recyclerView = view.findViewById(R.id.appointmentsRecyclerView)
+        titlePending = view.findViewById(R.id.titlePending)
         adapter = AppointmentsAdapter(
             appointments,
-            onItemClick = { /* No hacer nada al clickear la tarjeta */ },
-            onCompleteClick = { appointment -> completeAppointment(appointment) },
+            onItemClick = { appointment -> showAppointmentDetails(appointment) },
+            onCompleteClick = { appointment ->
+                android.util.Log.d("Firestore", "Callback onCompleteClick recibido en Fragment para cita: ${appointment.id}")
+                completeAppointment(appointment)
+            },
             onPostponeClick = { appointment -> postponeAppointment(appointment) },
             onEditClick = { appointment -> editAppointment(appointment) },
             showAddEvidenceButton = false,
@@ -51,12 +58,93 @@ class PendingAppointmentsFragment : Fragment() {
         return view
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        listenerRegistration?.remove()
+    }
+
     private fun loadPendingAppointments() {
-        appointments.clear()
-        appointments.add(Appointment("1", "Juan Pérez", "555-0123", "Calle Principal 123", "Pulido de Marmol", java.util.Date()))
-        appointments.add(Appointment("2", "María García", "555-0124", "Avenida Central 456", "Limpieza General", java.util.Date()))
-        appointments.add(Appointment("3", "Carlos Sánchez", "555-0125", "Plaza Mayor 789", "Desinfección", java.util.Date()))
-        adapter.updateAppointments(appointments)
+        // Cargar citas pendientes desde Firestore con listener en tiempo real
+        val db = FirebaseFirestore.getInstance()
+        listenerRegistration?.remove() // Elimina el listener anterior si existe
+
+        android.util.Log.d("Firestore", "Cargando citas pendientes...")
+
+        listenerRegistration = db.collection("CitasPendientes")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    android.util.Log.e("Firestore", "Error al escuchar Firestore: ${e.message}")
+                    android.widget.Toast.makeText(requireContext(), "Error al escuchar Firestore: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    return@addSnapshotListener
+                }
+
+                android.util.Log.d("Firestore", "Citas pendientes encontradas: ${snapshots?.size() ?: 0}")
+
+                appointments.clear()
+                for (document in snapshots!!) {
+                    val data = document.data
+                    android.util.Log.d("Firestore", "Documento: ${document.id}, Datos: $data")
+
+                    // Mapeo más robusto de datos
+                    val nombre = when (val nombreData = data["nombre"]) {
+                        is String -> nombreData
+                        else -> ""
+                    }
+
+                    val telefono = when (val telefonoData = data["telefono"]) {
+                        is String -> telefonoData
+                        else -> ""
+                    }
+
+                    val direccion = when (val direccionData = data["direccion"]) {
+                        is String -> direccionData
+                        else -> ""
+                    }
+
+                    val serviciosSeleccionados = when (val serviciosData = data["serviciosSeleccionados"]) {
+                        is List<*> -> serviciosData.filterIsInstance<String>()
+                        else -> listOf()
+                    }
+
+                    val mensaje = when (val mensajeData = data["mensaje"]) {
+                        is String -> mensajeData
+                        else -> ""
+                    }
+                    
+                    // Mapear la fecha desde Firestore
+                    val fecha = when (val fechaData = data["fecha"]) {
+                        is com.google.firebase.Timestamp -> fechaData.toDate()
+                        is java.util.Date -> fechaData
+                        else -> java.util.Date() // Fecha actual como fallback
+                    }
+                    
+                    val appointment = Appointment(
+                        id = document.id,
+                        clientName = nombre,
+                        clientPhone = telefono,
+                        clientAddress = direccion,
+                        serviceType = serviciosSeleccionados.joinToString(", "),
+                        date = fecha,
+                        extras = mensaje
+                    )
+                    
+                    // Filtrar citas vacías o con datos incompletos
+                    if (nombre.isNotEmpty() && telefono.isNotEmpty() && direccion.isNotEmpty() && serviciosSeleccionados.isNotEmpty()) {
+                        appointments.add(appointment)
+                        android.util.Log.d("Firestore", "Cita pendiente agregada: ${appointment.clientName}")
+                    } else {
+                        android.util.Log.d("Firestore", "Cita vacía filtrada: ${document.id}")
+                    }
+                }
+                adapter.updateAppointments(appointments)
+
+                // Ocultar título si no hay citas
+                if (appointments.isEmpty()) {
+                    titlePending.visibility = View.GONE
+                } else {
+                    titlePending.visibility = View.VISIBLE
+                }
+            }
     }
 
     private fun showOptionsDialog(appointment: Appointment) {
@@ -76,9 +164,52 @@ class PendingAppointmentsFragment : Fragment() {
     }
 
     private fun completeAppointment(appointment: Appointment) {
-        // Aquí puedes implementar la lógica para completar la cita
-        appointment.status = AppointmentStatus.COMPLETED
-        adapter.updateAppointments(appointments)
+        android.util.Log.d("Firestore", "Función completeAppointment ejecutada para cita: ${appointment.id}")
+        moverCitaFirestore("CitasPendientes", "CitasCompletadas", appointment.id) {
+            android.util.Log.d("Firestore", "Callback de moverCitaFirestore ejecutado")
+            appointments.remove(appointment)
+            adapter.updateAppointments(appointments)
+            Toast.makeText(requireContext(), "Cita marcada como completada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun moverCitaFirestore(origen: String, destino: String, citaId: String, onComplete: () -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        android.util.Log.d("Firestore", "Intentando mover cita: $citaId de '$origen' a '$destino'")
+
+        val docRef = db.collection(origen).document(citaId)
+        docRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val data = document.data
+                android.util.Log.d("Firestore", "Documento encontrado en $origen: $data")
+
+                docRef.delete().addOnSuccessListener {
+                    android.util.Log.d("Firestore", "Documento eliminado de $origen")
+
+                    if (data != null) {
+                        db.collection(destino).document(citaId).set(data).addOnSuccessListener {
+                            android.util.Log.d("Firestore", "Documento creado en $destino exitosamente")
+                            onComplete()
+                        }.addOnFailureListener { e ->
+                            android.util.Log.e("Firestore", "Error al crear documento en $destino: ${e.message}")
+                            onComplete()
+                        }
+                    } else {
+                        android.util.Log.e("Firestore", "Datos del documento son null")
+                        onComplete()
+                    }
+                }.addOnFailureListener { e ->
+                    android.util.Log.e("Firestore", "Error al eliminar documento de $origen: ${e.message}")
+                    onComplete()
+                }
+            } else {
+                android.util.Log.e("Firestore", "Documento no encontrado en $origen con ID: $citaId")
+                onComplete()
+            }
+        }.addOnFailureListener { e ->
+            android.util.Log.e("Firestore", "Error al obtener documento de $origen: ${e.message}")
+            onComplete()
+        }
     }
 
     private fun postponeAppointment(appointment: Appointment) {
@@ -313,10 +444,31 @@ class PendingAppointmentsFragment : Fragment() {
                 // Conversión correcta usando solo org.threeten.bp
                 val zoneId = org.threeten.bp.ZoneId.systemDefault()
                 val instant = newDate.atStartOfDay(zoneId).toInstant()
-                appointment.date = java.util.Date(instant.toEpochMilli())
-                appointment.status = AppointmentStatus.POSTPONED
-                adapter.updateAppointments(appointments)
-                Toast.makeText(requireContext(), "Cita pospuesta", Toast.LENGTH_SHORT).show()
+                val newDateObj = java.util.Date(instant.toEpochMilli())
+                
+                // Actualizar en Firestore
+                val db = FirebaseFirestore.getInstance()
+                val updatedData = mapOf(
+                    "fecha" to newDateObj,
+                    "status" to "POSTPONED"
+                )
+                
+                android.util.Log.d("Firestore", "Actualizando fecha de cita en Firestore: ${appointment.id} a ${newDate}")
+                
+                db.collection("CitasPendientes").document(appointment.id)
+                    .update(updatedData)
+                    .addOnSuccessListener {
+                        android.util.Log.d("Firestore", "Fecha de cita actualizada exitosamente en Firestore")
+                        // Actualizar objeto local
+                        appointment.date = newDateObj
+                        appointment.status = AppointmentStatus.POSTPONED
+                        adapter.updateAppointments(appointments)
+                        Toast.makeText(requireContext(), "Cita pospuesta", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        android.util.Log.e("Firestore", "Error al actualizar fecha de cita en Firestore: ${e.message}")
+                        Toast.makeText(requireContext(), "Error al posponer la cita", Toast.LENGTH_SHORT).show()
+                    }
             }
             dialog.dismiss()
         }
@@ -467,6 +619,45 @@ class PendingAppointmentsFragment : Fragment() {
             calendarView.currentDate = com.prolificinteractive.materialcalendarview.CalendarDay.from(newDate)
             dialog.dismiss()
         }
+        dialog.show()
+    }
+
+    private fun showAppointmentDetails(appointment: Appointment) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_appointment_details, null)
+        dialogView.findViewById<TextView>(R.id.detailClientName).text = appointment.clientName
+        dialogView.findViewById<TextView>(R.id.detailClientPhone).text = appointment.clientPhone
+        dialogView.findViewById<TextView>(R.id.detailClientAddress).text = appointment.clientAddress
+        dialogView.findViewById<TextView>(R.id.detailServiceType).text = appointment.serviceType
+
+        // Ocultar botones Confirmar y Eliminar
+        dialogView.findViewById<Button?>(R.id.btnConfirmAppointment)?.visibility = View.GONE
+        dialogView.findViewById<Button?>(R.id.btnDeleteAppointment)?.visibility = View.GONE
+
+        // Quitar el fondo blanco del diálogo
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("") { dialog, _ -> dialog.dismiss() }
+            .create()
+        
+        // Configurar el ancho del diálogo de manera más agresiva
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.98).toInt() // 98% del ancho de la pantalla
+        android.util.Log.d("Dialog", "Ancho de pantalla: ${displayMetrics.widthPixels}, Ancho del diálogo: $width")
+        
+        // Configurar ancho antes de mostrar
+        dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+        
+        // Establecer fondo transparente para el diálogo
+        dialog.setOnShowListener {
+            android.util.Log.d("Dialog", "Configurando ancho del diálogo después de mostrar...")
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+            
+            // Forzar la actualización del layout
+            dialogView.requestLayout()
+            dialogView.invalidate()
+        }
+        
         dialog.show()
     }
 } 

@@ -82,6 +82,8 @@ class MainCalendarFragment : Fragment() {
     private lateinit var adapter: AppointmentsAdapter
     private lateinit var calendarView: MaterialCalendarView
     private var selectedDay: CalendarDay? = null
+    private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
@@ -106,18 +108,90 @@ class MainCalendarFragment : Fragment() {
         val btnPrevMonth = view.findViewById<ImageButton>(R.id.btnPrevMonth)
         val btnNextMonth = view.findViewById<ImageButton>(R.id.btnNextMonth)
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewCitas)
-        // Citas distribuidas en varios días del mes actual para pruebas
-        val now = java.util.Calendar.getInstance()
-        val year = now.get(java.util.Calendar.YEAR)
-        val month = now.get(java.util.Calendar.MONTH)
-        appointments = mutableListOf(
-            Appointment("1", "Juan Pérez", "555-0123", "Calle Principal 123", "Pulido de Marmol", java.util.Date(year - 1900, month, 2)),
-            Appointment("2", "María García", "555-0124", "Avenida Central 456", "Limpieza General", java.util.Date(year - 1900, month, 5)),
-            Appointment("3", "Carlos Sánchez", "555-0125", "Plaza Mayor 789", "Desinfección", java.util.Date(year - 1900, month, 11)),
-            Appointment("4", "Ana López", "555-0126", "Calle Sur 321", "Limpieza de Vidrios", java.util.Date(year - 1900, month, 15)),
-            Appointment("5", "Luis Torres", "555-0127", "Boulevard Norte 654", "Pulido de Pisos", java.util.Date(year - 1900, month, 20))
-        )
-        appointments.sortBy { it.date }
+        val tvPendientes = view.findViewById<TextView>(R.id.tvPendientes)
+        // Cargar citas pendientes desde Firestore con listener en tiempo real
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        appointments = mutableListOf()
+        listenerRegistration?.remove() // Elimina el listener anterior si existe
+
+        listenerRegistration = db.collection("CitasPendientes")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    android.util.Log.e("Firestore", "Error al escuchar Firestore: ${e.message}")
+                    android.widget.Toast.makeText(requireContext(), "Error al escuchar Firestore: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    return@addSnapshotListener
+                }
+                
+                android.util.Log.d("Firestore", "Citas pendientes en pantalla principal: ${snapshots?.size() ?: 0}")
+                
+                appointments.clear()
+                for (document in snapshots!!) {
+                    val data = document.data
+                    android.util.Log.d("Firestore", "Documento principal: ${document.id}, Datos: $data")
+                    
+                    // Mapeo más robusto de datos
+                    val nombre = when (val nombreData = data["nombre"]) {
+                        is String -> nombreData
+                        else -> ""
+                    }
+                    
+                    val telefono = when (val telefonoData = data["telefono"]) {
+                        is String -> telefonoData
+                        else -> ""
+                    }
+                    
+                    val direccion = when (val direccionData = data["direccion"]) {
+                        is String -> direccionData
+                        else -> ""
+                    }
+                    
+                    val serviciosSeleccionados = when (val serviciosData = data["serviciosSeleccionados"]) {
+                        is List<*> -> serviciosData.filterIsInstance<String>()
+                        else -> listOf()
+                    }
+                    
+                    val mensaje = when (val mensajeData = data["mensaje"]) {
+                        is String -> mensajeData
+                        else -> ""
+                    }
+                    
+                    // Mapear la fecha desde Firestore
+                    val fecha = when (val fechaData = data["fecha"]) {
+                        is com.google.firebase.Timestamp -> fechaData.toDate()
+                        is java.util.Date -> fechaData
+                        else -> java.util.Date() // Fecha actual como fallback
+                    }
+                    
+                    val appointment = Appointment(
+                        id = document.id,
+                        clientName = nombre,
+                        clientPhone = telefono,
+                        clientAddress = direccion,
+                        serviceType = serviciosSeleccionados.joinToString(", "),
+                        date = fecha,
+                        extras = mensaje
+                    )
+                    
+                    // Filtrar citas vacías o con datos incompletos
+                    if (nombre.isNotEmpty() && telefono.isNotEmpty() && direccion.isNotEmpty() && serviciosSeleccionados.isNotEmpty()) {
+                        appointments.add(appointment)
+                        android.util.Log.d("Firestore", "Cita principal agregada: ${appointment.clientName}")
+                    } else {
+                        android.util.Log.d("Firestore", "Cita vacía filtrada: ${document.id}")
+                    }
+                }
+                appointments.sortBy { it.date }
+                adapter.updateAppointments(appointments)
+                
+                // Ocultar título si no hay citas
+                if (appointments.isEmpty()) {
+                    tvPendientes.visibility = View.GONE
+                } else {
+                    tvPendientes.visibility = View.VISIBLE
+                }
+                
+                setupCalendarDecorators()
+            }
         adapter = AppointmentsAdapter(
             appointments,
             onItemClick = { appointment -> showAppointmentDetails(appointment) },
@@ -157,6 +231,11 @@ class MainCalendarFragment : Fragment() {
         selectedDay = CalendarDay.today()
         setupCalendarDecorators()
         return view
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        listenerRegistration?.remove()
     }
 
     private fun setupCalendarDecorators() {
@@ -233,11 +312,36 @@ class MainCalendarFragment : Fragment() {
         dialogView.findViewById<TextView>(R.id.detailClientAddress).text = appointment.clientAddress
         dialogView.findViewById<TextView>(R.id.detailServiceType).text = appointment.serviceType
 
-        android.app.AlertDialog.Builder(requireContext())
+        // Ocultar botones Confirmar y Eliminar
+        dialogView.findViewById<Button?>(R.id.btnConfirmAppointment)?.visibility = View.GONE
+        dialogView.findViewById<Button?>(R.id.btnDeleteAppointment)?.visibility = View.GONE
+
+        // Quitar el fondo blanco del diálogo
+        val dialog = android.app.AlertDialog.Builder(requireContext())
             .setView(dialogView)
-            .setPositiveButton("CERRAR") { dialog, _ -> dialog.dismiss() }
+            .setPositiveButton("") { dialog, _ -> dialog.dismiss() }
             .create()
-            .show()
+        
+        // Configurar el ancho del diálogo de manera más agresiva
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.98).toInt() // 98% del ancho de la pantalla
+        android.util.Log.d("Dialog", "Ancho de pantalla: ${displayMetrics.widthPixels}, Ancho del diálogo: $width")
+        
+        // Configurar ancho antes de mostrar
+        dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+        
+        // Establecer fondo transparente para el diálogo
+        dialog.setOnShowListener {
+            android.util.Log.d("Dialog", "Configurando ancho del diálogo después de mostrar...")
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+            
+            // Forzar la actualización del layout
+            dialogView.requestLayout()
+            dialogView.invalidate()
+        }
+        
+        dialog.show()
     }
 
     private fun showPostponeDialog(appointment: Appointment) {

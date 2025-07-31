@@ -23,6 +23,7 @@ import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import android.widget.TextView
 
 class EvidenceFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
@@ -31,37 +32,39 @@ class EvidenceFragment : Fragment() {
     private var selectedAppointment: Appointment? = null
     private lateinit var evidenceGallery: LinearLayout
     private var evidencias: List<Evidencia> = emptyList()
+    private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
+    private lateinit var tvEvidenceTitle: TextView
+    private lateinit var detailContainer: LinearLayout
 
-    private val pickMediaLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        if (uris != null && uris.isNotEmpty() && selectedAppointment != null) {
+    private val pickMediaLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null && selectedAppointment != null) {
             lifecycleScope.launch {
-                val evidenciaDao = ErniCleanApplication.database.evidenciaDao()
-                uris.forEach { uri ->
-                    // Copiar la imagen a la carpeta interna de la app
-                    val fileName = "evidencia_${System.currentTimeMillis()}.jpg"
-                    val destFile = File(requireContext().filesDir, fileName)
-                    try {
-                        requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-                            FileOutputStream(destFile).use { output ->
-                                inputStream.copyTo(output)
-                            }
+                val fileName = "evidencia_${System.currentTimeMillis()}.jpg"
+                val destFile = File(requireContext().filesDir, fileName)
+                try {
+                    requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                        FileOutputStream(destFile).use { output ->
+                            inputStream.copyTo(output)
                         }
-                        val fileUri = Uri.fromFile(destFile)
-                        Log.d("EVIDENCIA", "Guardando URI: $fileUri")
-                        val evidencia = Evidencia(citaId = selectedAppointment!!.id.toInt(), uri = fileUri.toString())
-                        evidenciaDao.insertarEvidencia(evidencia)
-                    } catch (e: Exception) {
-                        Log.e("EVIDENCIA", "Error copiando archivo: ${e.message}")
                     }
+                    val fileUri = Uri.fromFile(destFile)
+                    val evidencia = Evidencia(citaId = selectedAppointment!!.hashCode(), uri = fileUri.toString())
+                    val evidenciaDao = ErniCleanApplication.database.evidenciaDao()
+                    evidenciaDao.insertarEvidencia(evidencia)
+                    cargarEvidencias(selectedAppointment!!.hashCode())
+                    android.widget.Toast.makeText(requireContext(), "Evidencia agregada", android.widget.Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(requireContext(), "Error al guardar evidencia", android.widget.Toast.LENGTH_SHORT).show()
                 }
-                cargarEvidencias(selectedAppointment!!.id.toInt())
             }
         }
     }
 
     private val editEvidenceLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK && selectedAppointment != null) {
-            cargarEvidencias(selectedAppointment!!.id.toInt())
+        if (result.resultCode == Activity.RESULT_OK) {
+            selectedAppointment?.let { appointment ->
+                cargarEvidencias(appointment.hashCode())
+            }
         }
     }
 
@@ -71,13 +74,16 @@ class EvidenceFragment : Fragment() {
         val view = inflater.inflate(R.layout.activity_evidence, container, false)
         recyclerView = view.findViewById(R.id.recyclerViewCompletedAppointments)
         evidenceGallery = view.findViewById(R.id.evidenceGallery)
+        tvEvidenceTitle = view.findViewById(R.id.tvEvidenceTitle)
+        detailContainer = view.findViewById(R.id.detailContainer)
         adapter = AppointmentsAdapter(
             completedAppointments,
             onItemClick = { appointment ->
                 selectedAppointment = appointment
                 // Abrir la galería de evidencias para la cita
                 val intent = Intent(requireContext(), EvidenceGalleryActivity::class.java)
-                intent.putExtra("citaId", appointment.id.toInt())
+                // Usar un ID numérico generado en lugar del ID de Firestore
+                intent.putExtra("citaId", appointment.hashCode())
                 startActivity(intent)
             },
             onCompleteClick = {},
@@ -94,15 +100,89 @@ class EvidenceFragment : Fragment() {
         return view
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        listenerRegistration?.remove()
+    }
+
     private fun loadCompletedAppointments() {
-        completedAppointments.clear()
-        // Aquí deberías cargar solo citas completadas desde tu fuente de datos
-        completedAppointments.add(
-            Appointment(
-                "10", "Ejemplo Cliente", "555-0000", "Calle Ficticia 123", "Limpieza General", java.util.Date(), AppointmentStatus.COMPLETED
-            )
-        )
-        adapter.updateAppointments(completedAppointments)
+        // Cargar citas completadas desde Firestore con listener en tiempo real
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        listenerRegistration?.remove() // Elimina el listener anterior si existe
+
+        android.util.Log.d("Firestore", "Cargando citas completadas...")
+
+        listenerRegistration = db.collection("CitasCompletadas")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    android.util.Log.e("Firestore", "Error al escuchar Firestore: ${e.message}")
+                    android.widget.Toast.makeText(requireContext(), "Error al escuchar Firestore: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    return@addSnapshotListener
+                }
+                
+                android.util.Log.d("Firestore", "Citas completadas encontradas: ${snapshots?.size() ?: 0}")
+                
+                completedAppointments.clear()
+                for (document in snapshots!!) {
+                    val data = document.data
+                    android.util.Log.d("Firestore", "Documento completado: ${document.id}, Datos: $data")
+                    
+                    // Mapeo más robusto de datos
+                    val nombre = when (val nombreData = data["nombre"]) {
+                        is String -> nombreData
+                        else -> ""
+                    }
+                    
+                    val telefono = when (val telefonoData = data["telefono"]) {
+                        is String -> telefonoData
+                        else -> ""
+                    }
+                    
+                    val direccion = when (val direccionData = data["direccion"]) {
+                        is String -> direccionData
+                        else -> ""
+                    }
+                    
+                    val serviciosSeleccionados = when (val serviciosData = data["serviciosSeleccionados"]) {
+                        is List<*> -> serviciosData.filterIsInstance<String>()
+                        else -> listOf()
+                    }
+                    
+                    val mensaje = when (val mensajeData = data["mensaje"]) {
+                        is String -> mensajeData
+                        else -> ""
+                    }
+                    
+                    val appointment = Appointment(
+                        id = document.id,
+                        clientName = nombre,
+                        clientPhone = telefono,
+                        clientAddress = direccion,
+                        serviceType = serviciosSeleccionados.joinToString(", "),
+                        date = java.util.Date(),
+                        extras = mensaje,
+                        status = AppointmentStatus.COMPLETED
+                    )
+                    
+                    // Filtrar citas vacías o con datos incompletos
+                    if (nombre.isNotEmpty() && telefono.isNotEmpty() && direccion.isNotEmpty() && serviciosSeleccionados.isNotEmpty()) {
+                        completedAppointments.add(appointment)
+                        android.util.Log.d("Firestore", "Cita completada agregada: ${appointment.clientName}")
+                    } else {
+                        android.util.Log.d("Firestore", "Cita vacía filtrada: ${document.id}")
+                    }
+                }
+                adapter.updateAppointments(completedAppointments)
+                
+                // Ocultar título y contenedor si no hay citas
+                if (completedAppointments.isEmpty()) {
+                    tvEvidenceTitle.visibility = View.GONE
+                    detailContainer.visibility = View.GONE
+                } else {
+                    tvEvidenceTitle.visibility = View.VISIBLE
+                    detailContainer.visibility = View.VISIBLE
+                }
+            }
     }
 
     private fun cargarEvidencias(citaId: Int) {

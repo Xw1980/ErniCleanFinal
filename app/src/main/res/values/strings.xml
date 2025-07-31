@@ -5,4 +5,11 @@
     <string name="accept">Aceptar</string>
     <string name="reject">Rechazar</string>
     <string name="all_appointments">VER TODAS LAS CITAS</string>
+    <string name="select_appointment_date">Elige la fecha</string>
+    <string name="pending_appointments_count">Tienes %d cita(s) pendiente(s) este día:</string>
+    <string name="confirm_date">Confirmar Fecha</string>
+    <string name="cancel">Cancelar</string>
+    <string name="please_select_date">Por favor selecciona una fecha</string>
+    <string name="appointment_confirmed_for" formatted="false">Cita confirmada para %d/%d/%d</string>
+    <string name="error_confirming_appointment">Error al confirmar la cita</string>
 </resources>

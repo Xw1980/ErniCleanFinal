@@ -13,6 +13,7 @@ class WebAppointmentsActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: WebAppointmentsAdapter
     private var appointments = mutableListOf<Appointment>()
+    private var listenerRegistration: com.google.firebase.firestore.ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,12 +35,49 @@ class WebAppointmentsActivity : AppCompatActivity() {
         loadWebAppointments()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        listenerRegistration?.remove()
+    }
+
     private fun loadWebAppointments() {
-        // Simulación de citas web (en el futuro se cargará de la base de datos)
-        appointments.clear()
-        appointments.add(Appointment("4", "Ana López", "555-0126", "Calle Sur 321", "Limpieza de Vidrios", java.util.Date()))
-        appointments.add(Appointment("5", "Pedro Ruiz", "555-0127", "Avenida Norte 654", "Desinfección", java.util.Date()))
-        adapter.updateAppointments(appointments)
+        // Cargar citas web desde Firestore con listener en tiempo real
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        listenerRegistration?.remove() // Elimina el listener anterior si existe
+
+        android.util.Log.d("Firestore", "Cargando citas web desde formularios...")
+
+        listenerRegistration = db.collection("formulario")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    android.util.Log.e("Firestore", "Error al escuchar Firestore: ${e.message}")
+                    android.widget.Toast.makeText(this, "Error al escuchar Firestore: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    return@addSnapshotListener
+                }
+                
+                android.util.Log.d("Firestore", "Citas web encontradas: ${snapshots?.size() ?: 0}")
+                
+                appointments.clear()
+                for (document in snapshots!!) {
+                    val form = document.toObject(Formulario::class.java)
+                    if (form != null) {
+                        val appointment = Appointment(
+                            id = document.id,
+                            clientName = form.nombre,
+                            clientPhone = form.telefono,
+                            clientAddress = form.direccion,
+                            serviceType = form.serviciosSeleccionados.joinToString(", "),
+                            date = java.util.Date(),
+                            extras = form.mensaje
+                        )
+                        appointments.add(appointment)
+                        android.util.Log.d("Firestore", "Cita agregada: ${appointment.clientName}")
+                    } else {
+                        android.util.Log.e("Firestore", "Error al convertir documento ${document.id} a Formulario")
+                    }
+                }
+                adapter.updateAppointments(appointments)
+            }
     }
 
     private fun callClient(phone: String) {

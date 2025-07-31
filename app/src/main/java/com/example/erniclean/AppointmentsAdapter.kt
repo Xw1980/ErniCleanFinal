@@ -74,8 +74,12 @@ class AppointmentsAdapter(
                         popup.menu.add("Editar")
                     }
                     popup.setOnMenuItemClickListener { menuItem ->
+                        android.util.Log.d("Firestore", "Opción seleccionada en popup: ${menuItem.title}")
                         when (menuItem.title) {
-                            "Completar" -> onCompleteClick(appointment)
+                            "Completar" -> {
+                                android.util.Log.d("Firestore", "Ejecutando onCompleteClick para cita: ${appointment.id}")
+                                onCompleteClick(appointment)
+                            }
                             "Posponer" -> onPostponeClick(appointment)
                             "Editar" -> onEditClick(appointment)
                         }

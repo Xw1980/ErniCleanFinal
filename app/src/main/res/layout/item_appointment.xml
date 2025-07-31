@@ -27,7 +27,7 @@
                 android:id="@+id/dayOfWeek"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MI"
+                android:text=""
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -36,7 +36,7 @@
                 android:id="@+id/dayNumber"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="18"
+                android:text=""
                 android:textColor="@android:color/white"
                 android:textSize="32sp"
                 android:textStyle="bold" />
@@ -69,7 +69,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="NOMBRE"
+                        android:text=""
                         android:textColor="#142634"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -89,7 +89,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="NUMERO"
+                    android:text=""
                     android:textColor="#142634"
                     android:textSize="14sp" />
 
@@ -98,7 +98,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="DIRECCION"
+                    android:text=""
                     android:textColor="#142634"
                     android:textSize="14sp" />
 
@@ -107,7 +107,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="TIPO DE SERVICIO"
+                    android:text=""
                     android:textColor="#142634"
                     android:textSize="14sp"
                     android:textStyle="bold" />
