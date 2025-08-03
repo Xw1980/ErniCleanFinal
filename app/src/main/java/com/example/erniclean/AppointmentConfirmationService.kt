@@ -75,7 +75,21 @@ class AppointmentConfirmationService {
                     
                 } catch (e: Exception) {
                     Log.e(TAG, "Error en el proceso de confirmación: ${e.message}", e)
-                    errorMessage = e.message ?: "Error desconocido en el proceso de confirmación"
+                    // Determinar si es un error de PDF o de email
+                    when {
+                        e.message?.contains("PDF", ignoreCase = true) == true -> {
+                            errorMessage = "Error al generar PDF: ${e.message}"
+                        }
+                        e.message?.contains("email", ignoreCase = true) == true -> {
+                            errorMessage = "Error al enviar email: ${e.message}"
+                        }
+                        e.message?.contains("smtp", ignoreCase = true) == true -> {
+                            errorMessage = "Error de configuración de email: ${e.message}"
+                        }
+                        else -> {
+                            errorMessage = "Error en el proceso: ${e.message}"
+                        }
+                    }
                     false
                 }
             }

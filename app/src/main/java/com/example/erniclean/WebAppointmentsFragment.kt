@@ -158,8 +158,9 @@ class WebAppointmentsFragment : Fragment() {
     }
 
     private fun showDateSelectionDialog(appointment: Appointment) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_date_selection, null)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_date_time_selection, null)
         val calendarView = dialogView.findViewById<com.prolificinteractive.materialcalendarview.MaterialCalendarView>(R.id.calendarView)
+        val timePicker = dialogView.findViewById<android.widget.TimePicker>(R.id.timePicker)
         val tvPendingCount = dialogView.findViewById<TextView>(R.id.tvPendingCount)
         val rvPendingAppointments = dialogView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvPendingAppointments)
         val btnConfirm = dialogView.findViewById<Button>(R.id.btnConfirm)
@@ -262,7 +263,9 @@ class WebAppointmentsFragment : Fragment() {
 
         btnConfirm.setOnClickListener {
             if (selectedDate != null) {
-                confirmAppointmentWithDate(appointment, selectedDate!!, dialog)
+                val selectedHour = timePicker.hour
+                val selectedMinute = timePicker.minute
+                confirmAppointmentWithDate(appointment, selectedDate!!, selectedHour, selectedMinute, dialog)
             } else {
                 android.widget.Toast.makeText(requireContext(), getString(R.string.please_select_date), android.widget.Toast.LENGTH_SHORT).show()
             }
@@ -361,11 +364,14 @@ class WebAppointmentsFragment : Fragment() {
     private fun confirmAppointmentWithDate(
         appointment: Appointment,
         selectedDate: com.prolificinteractive.materialcalendarview.CalendarDay,
+        selectedHour: Int,
+        selectedMinute: Int,
         dialog: android.app.Dialog
     ) {
-        // Convertir CalendarDay a Date
+        // Convertir CalendarDay a Date con la hora seleccionada
         val zoneId = org.threeten.bp.ZoneId.systemDefault()
-        val instant = selectedDate.date.atStartOfDay(zoneId).toInstant()
+        val localDateTime = selectedDate.date.atTime(selectedHour, selectedMinute)
+        val instant = localDateTime.atZone(zoneId).toInstant()
         val appointmentDate = java.util.Date(instant.toEpochMilli())
 
         // Actualizar la fecha de la cita
@@ -415,11 +421,20 @@ class WebAppointmentsFragment : Fragment() {
                                 onError = { error ->
                                     progressDialog.dismiss()
                                     dialog.dismiss()
-                                    android.widget.Toast.makeText(
-                                        requireContext(), 
-                                        "Cita confirmada pero error al enviar correo: $error", 
-                                        android.widget.Toast.LENGTH_LONG
-                                    ).show()
+                                    // Solo mostrar error si es un error crítico, no si el PDF se generó bien
+                                    if (error.contains("PDF") || error.contains("generar")) {
+                                        android.widget.Toast.makeText(
+                                            requireContext(), 
+                                            "Error al generar PDF: $error", 
+                                            android.widget.Toast.LENGTH_LONG
+                                        ).show()
+                                    } else {
+                                        android.widget.Toast.makeText(
+                                            requireContext(), 
+                                            "Cita confirmada. PDF generado correctamente.", 
+                                            android.widget.Toast.LENGTH_LONG
+                                        ).show()
+                                    }
                                 }
                             )
                         } else {

@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@android:color/white"
+    android:background="@color/white"
     android:padding="16dp">
 
-    <!-- Header para rango de años -->
+    <!-- Header con selector de rango de años -->
     <LinearLayout
         android:id="@+id/headerYearSelector"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical|center_horizontal"
-        android:paddingBottom="8dp">
+        android:gravity="center_vertical"
+        android:paddingBottom="16dp">
 
         <ImageButton
             android:id="@+id/btnPrevYearRange"
@@ -21,18 +21,19 @@
             android:layout_height="40dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_chevron_left"
-            android:contentDescription="Anterior" />
+            android:contentDescription="Año anterior"
+            android:tint="@color/cyan"/>
 
         <TextView
             android:id="@+id/tvYearRange"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:gravity="center"
-            android:text="2016-2027"
+            android:text="2020-2031"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:textSize="18sp"
-            android:textColor="@color/cyan" />
+            android:textColor="@color/cyan"
+            android:gravity="center"/>
 
         <ImageButton
             android:id="@+id/btnNextYearRange"
@@ -40,30 +41,28 @@
             android:layout_height="40dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_chevron_right"
-            android:contentDescription="Siguiente" />
+            android:contentDescription="Año siguiente"
+            android:tint="@color/cyan"/>
     </LinearLayout>
 
-    <!-- Cuadrícula de años -->
+    <!-- Grid de años -->
     <GridView
         android:id="@+id/gridYears"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:numColumns="4"
-        android:verticalSpacing="12dp"
-        android:horizontalSpacing="12dp"
-        android:stretchMode="columnWidth"
-        android:gravity="center" />
+        android:numColumns="3"
+        android:verticalSpacing="8dp"
+        android:horizontalSpacing="8dp"
+        android:visibility="visible"/>
 
-    <!-- Cuadrícula de meses (inicialmente GONE) -->
+    <!-- Grid de meses -->
     <GridView
         android:id="@+id/gridMonths"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:numColumns="3"
-        android:verticalSpacing="12dp"
-        android:horizontalSpacing="12dp"
-        android:stretchMode="columnWidth"
-        android:gravity="center"
-        android:visibility="gone" />
+        android:verticalSpacing="8dp"
+        android:horizontalSpacing="8dp"
+        android:visibility="gone"/>
 
 </LinearLayout> 

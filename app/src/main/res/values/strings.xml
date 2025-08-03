@@ -12,4 +12,7 @@
     <string name="please_select_date">Por favor selecciona una fecha</string>
     <string name="appointment_confirmed_for" formatted="false">Cita confirmada para %d/%d/%d</string>
     <string name="error_confirming_appointment">Error al confirmar la cita</string>
+    <string name="select_appointment_datetime">Elige fecha y hora</string>
+    <string name="select_time">Selecciona la hora</string>
+    <string name="confirm_datetime">Confirmar</string>
 </resources>

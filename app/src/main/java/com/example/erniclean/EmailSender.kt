@@ -65,7 +65,7 @@ class EmailSender {
                     val message = MimeMessage(session).apply {
                         setFrom(InternetAddress(COMPANY_EMAIL))
                         setRecipients(Message.RecipientType.TO, InternetAddress.parse(clientEmail))
-                        subject = "Confirmación de Cita - ERNI-CLEAN"
+                        subject = "Confirmación de Cita - ERNICLEAN"
                         
                         // Crear el contenido del mensaje
                         val multipart = MimeMultipart()
@@ -91,7 +91,16 @@ class EmailSender {
                     
                 } catch (e: Exception) {
                     Log.e(TAG, "Error sending email: ${e.message}", e)
-                    errorMessage = e.message ?: "Error desconocido al enviar el correo"
+                    // Proporcionar mensajes de error más específicos
+                    errorMessage = when {
+                        e.message?.contains("authentication", ignoreCase = true) == true -> 
+                            "Error de autenticación de email. Verificar credenciales."
+                        e.message?.contains("smtp", ignoreCase = true) == true -> 
+                            "Error de conexión SMTP. Verificar configuración."
+                        e.message?.contains("timeout", ignoreCase = true) == true -> 
+                            "Timeout en conexión de email."
+                        else -> "Error al enviar email: ${e.message}"
+                    }
                     false
                 }
             }
@@ -121,17 +130,15 @@ class EmailSender {
                     Adjunto encontrará el comprobante de su cita en formato PDF.
                     
                     IMPORTANTE:
-                    • Por favor llegue 10 minutos antes de la hora programada
                     • Si necesita cancelar o reprogramar, contáctenos con anticipación
-                    • Asegúrese de que el área a limpiar esté despejada
                     • Nuestro equipo llegará con todos los materiales necesarios
                     
                     Para cualquier consulta, no dude en contactarnos.
                     
-                    Gracias por confiar en ERNI-CLEAN
+                    Gracias por confiar en ERNICLEAN
                     
                     Saludos cordiales,
-                    Equipo ERNI-CLEAN
+                    Equipo ERNICLEAN
                 """.trimIndent()
             }
         }

@@ -14,7 +14,7 @@
         android:layout_margin="16dp"
         android:background="@drawable/modern_calendar_bg"
         android:elevation="1dp"
-        android:padding="10dp"
+        android:padding="8dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -35,16 +35,18 @@
 
             <TextView
                 android:id="@+id/tvMonthTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Julio 2025"
                 android:textStyle="bold"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textColor="@color/cyan"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:clickable="true"
-                android:focusable="true"/>
+                android:focusable="true"
+                android:gravity="center"/>
 
             <ImageButton
                 android:id="@+id/btnNextMonth"
@@ -59,7 +61,7 @@
         <com.prolificinteractive.materialcalendarview.MaterialCalendarView
             android:id="@+id/calendarView"
             android:layout_width="match_parent"
-            android:layout_height="380dp"
+            android:layout_height="320dp"
             android:layout_gravity="center_horizontal"
             tools:ignore="MissingConstraints"/>
     </LinearLayout>
@@ -70,12 +72,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="PENDIENTES DEL DÍA"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="@color/cyan"
         android:paddingStart="20dp"
-        android:paddingTop="0dp"
-        android:paddingBottom="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:background="@android:color/white"/>
 
     <!-- Lista de citas -->
@@ -86,6 +88,7 @@
         android:layout_weight="1"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
         android:clipToPadding="true"/>
 
 </LinearLayout> 

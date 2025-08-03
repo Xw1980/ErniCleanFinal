@@ -322,25 +322,7 @@ class MainCalendarFragment : Fragment() {
             .setPositiveButton("") { dialog, _ -> dialog.dismiss() }
             .create()
         
-        // Configurar el ancho del diálogo de manera más agresiva
-        val displayMetrics = resources.displayMetrics
-        val width = (displayMetrics.widthPixels * 0.98).toInt() // 98% del ancho de la pantalla
-        android.util.Log.d("Dialog", "Ancho de pantalla: ${displayMetrics.widthPixels}, Ancho del diálogo: $width")
-        
-        // Configurar ancho antes de mostrar
-        dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
-        
-        // Establecer fondo transparente para el diálogo
-        dialog.setOnShowListener {
-            android.util.Log.d("Dialog", "Configurando ancho del diálogo después de mostrar...")
-            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-            dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
-            
-            // Forzar la actualización del layout
-            dialogView.requestLayout()
-            dialogView.invalidate()
-        }
-        
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
     }
 

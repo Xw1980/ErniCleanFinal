@@ -9,6 +9,9 @@ import android.graphics.pdf.PdfDocument.PageInfo
 import android.graphics.pdf.PdfDocument.Page
 import android.graphics.Canvas
 import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -17,6 +20,7 @@ import java.util.*
 class PdfGenerator {
     
     companion object {
+        
         fun generateAppointmentTicket(context: Context, appointment: Appointment, clientEmail: String): File {
             val fileName = "cita_${appointment.id}_${System.currentTimeMillis()}.pdf"
             val file = File(context.cacheDir, fileName)
@@ -32,16 +36,46 @@ class PdfGenerator {
             val paint = Paint()
             val rect = Rect()
             
-            // Configurar fuente para el título
-            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            paint.textSize = 24f
-            paint.color = Color.rgb(0, 188, 212) // Cyan color
-            
-            // Título principal
-            val title = "ERNI-CLEAN"
-            paint.getTextBounds(title, 0, title.length, rect)
-            val titleX = (595 - rect.width()) / 2f
-            canvas.drawText(title, titleX, 80f, paint)
+            // Cargar y dibujar el logo de la empresa
+            try {
+                // Intentar cargar la imagen PNG del logo
+                val logoBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.logo_erniclean)
+                if (logoBitmap != null) {
+                    // Posicionar el logo en el centro del PDF
+                    val logoCenterX = 595f / 2f
+                    val logoY = 60f
+                    val logoWidth = 200f
+                    val logoHeight = 100f
+                    val logoX = logoCenterX - logoWidth / 2f
+                    
+                    // Crear rectángulo de destino para el logo
+                    val destRect = RectF(logoX, logoY, logoX + logoWidth, logoY + logoHeight)
+                    canvas.drawBitmap(logoBitmap, null, destRect, paint)
+                    
+                    // Limpiar el bitmap
+                    logoBitmap.recycle()
+                } else {
+                    // Fallback: dibujar texto si no se puede cargar la imagen
+                    paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                    paint.textSize = 28f
+                    paint.color = Color.rgb(0, 188, 212) // Cyan color
+                    
+                    val title = "ERNICLEAN"
+                    paint.getTextBounds(title, 0, title.length, rect)
+                    val titleX = (595 - rect.width()) / 2f
+                    canvas.drawText(title, titleX, 80f, paint)
+                }
+            } catch (e: Exception) {
+                // Fallback: dibujar texto si hay error al cargar la imagen
+                paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                paint.textSize = 28f
+                paint.color = Color.rgb(0, 188, 212) // Cyan color
+                
+                val title = "ERNICLEAN"
+                paint.getTextBounds(title, 0, title.length, rect)
+                val titleX = (595 - rect.width()) / 2f
+                canvas.drawText(title, titleX, 80f, paint)
+            }
             
             // Subtítulo
             paint.textSize = 16f
@@ -49,11 +83,11 @@ class PdfGenerator {
             val subtitle = "COMPROBANTE DE CITA"
             paint.getTextBounds(subtitle, 0, subtitle.length, rect)
             val subtitleX = (595 - rect.width()) / 2f
-            canvas.drawText(subtitle, subtitleX, 120f, paint)
+            canvas.drawText(subtitle, subtitleX, 180f, paint)
             
             // Línea separadora
             paint.strokeWidth = 2f
-            canvas.drawLine(50f, 140f, 545f, 140f, paint)
+            canvas.drawLine(50f, 200f, 545f, 200f, paint)
             
             // Información de la cita
             paint.textSize = 12f
@@ -63,7 +97,7 @@ class PdfGenerator {
             val dateFormat = SimpleDateFormat("dd/MM/yyyy 'a las' HH:mm", Locale("es", "ES"))
             val appointmentDate = dateFormat.format(appointment.date)
             
-            var yPosition = 180f
+            var yPosition = 240f
             val lineHeight = 25f
             
             // Función para dibujar una línea de información
